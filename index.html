@@ -1,1476 +1,600 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ACE Training Terminal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap');
-
-    :root {
-      --bg-navy: #0b0f2b;
-      --bg-midnight: #0a0e1a;
-      --neon-cyan: #33f6ff;
-      --magenta: #ff68d7;
-      --lime: #a8ff60;
-      --amber: #ffc857;
-      --text-light: #eaf2ff;
-      --text-muted: #9fb1d6;
-      --panel: #0f1620;
-      --border-glow: rgba(51, 246, 255, 0.4);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      height: 100%;
-      background: var(--bg-navy);
-      color: var(--text-light);
-      font-family: 'Inter', system-ui, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* CRT Scanline Effect */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.1) 0px,
-        transparent 1px,
-        transparent 2px,
-        rgba(0, 0, 0, 0.1) 3px
-      );
-      z-index: 9999;
-      animation: scanline-flicker 8s linear infinite;
-    }
-
-    @keyframes scanline-flicker {
-      0%, 100% { opacity: 0.1; }
-      50% { opacity: 0.08; }
-    }
-
-    .screen-container {
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    /* Header */
-    .header {
-      text-align: center;
-      padding: 30px 20px 10px;
-    }
-
-    .header h1 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(16px, 3vw, 24px);
-      color: var(--neon-cyan);
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      animation: title-glow 2s ease-in-out infinite;
-    }
-
-    @keyframes title-glow {
-      0%, 100% {
-        text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px rgba(51, 246, 255, 0.6);
-      }
-      50% {
-        text-shadow: 0 0 15px var(--neon-cyan), 0 0 30px rgba(51, 246, 255, 0.8);
-      }
-    }
-
-    .user-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--text-muted);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-top: 8px;
-    }
-
-    .user-bar .welcome {
-      color: var(--lime);
-      font-weight: 700;
-    }
-
-    .user-bar .stat {
-      color: var(--amber);
-    }
-
-    .reset-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      color: var(--text-muted);
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      transition: all 200ms ease;
-    }
-
-    .reset-btn:hover {
-      border-color: var(--magenta);
-      color: var(--magenta);
-      box-shadow: 0 0 12px rgba(255,104,215,0.3);
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: 8px;
-    }
-
-    .divider {
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--neon-cyan) 20%, var(--magenta) 80%, transparent);
-      margin: 20px auto;
-      max-width: 800px;
-      box-shadow: 0 0 10px var(--neon-cyan);
-    }
-
-    /* Content */
-    .content-wrapper {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* Dashboard */
-    #dashboard {
-      margin-bottom: 30px;
-    }
-
-    .dash-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 16px 0;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      padding: 14px 16px;
-      box-shadow: inset 0 0 0 1px rgba(51,246,255,.06);
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      font-family: 'Press Start 2P', monospace;
-      color: var(--neon-cyan);
-      font-size: 13px;
-    }
-
-    .xp-bar {
-      width: 100%;
-      height: 12px;
-      background: linear-gradient(90deg,#0a0e1a,#121a24);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-
-    .xp-bar > div {
-      height: 100%;
-      background: linear-gradient(90deg, var(--neon-cyan), var(--lime));
-      transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .badge {
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,104,215,.12);
-      color: var(--magenta);
-      text-shadow: 0 0 6px rgba(255,104,215,.5);
-      font-size: 11px;
-      animation: badge-float 3s ease-in-out infinite;
-    }
-
-    @keyframes badge-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
-    }
-
-    /* NotebookLM Card */
-    .notebooklm-card {
-      background: linear-gradient(145deg, #2a2010, #1f1808);
-      border: 1px solid var(--amber);
-      box-shadow: 0 0 15px rgba(255, 200, 87, 0.2);
-    }
-
-    .notebooklm-card h3 {
-      color: var(--amber);
-    }
-
-    .notebooklm-launch {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(145deg, #2a2010, #1f1808);
-      border: 1px solid var(--amber);
-      color: var(--text-light);
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-      margin-top: 8px;
-    }
-
-    .notebooklm-launch:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 20px var(--amber);
-    }
-
-    /* Module Card */
-    .module-card {
-      background: linear-gradient(145deg, #121832, #0d1124);
-      border: 2px solid var(--border-glow);
-      border-radius: 16px;
-      padding: 30px;
-      margin-bottom: 30px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(51, 246, 255, 0.2);
-    }
-
-    .module-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--neon-cyan), var(--magenta), var(--lime));
-      animation: border-sweep 3s linear infinite;
-    }
-
-    @keyframes border-sweep {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-
-    .module-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(14px, 2.5vw, 20px);
-      color: var(--lime);
-      margin-bottom: 15px;
-      text-transform: uppercase;
-    }
-
-    .module-desc {
-      color: var(--text-muted);
-      line-height: 1.6;
-      font-size: 14px;
-      margin-bottom: 25px;
-    }
-
-    /* Tab Grid */
-    .tab-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .tab-button {
-      background: linear-gradient(145deg, #1a2347, #12183a);
-      border: 2px solid var(--neon-cyan);
-      color: var(--text-light);
-      padding: 18px 16px;
-      border-radius: 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-
-    .tab-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 25px var(--neon-cyan);
-    }
-
-    .tab-button[data-accent="cyan"] { border-color: var(--neon-cyan); }
-    .tab-button[data-accent="magenta"] { border-color: var(--magenta); }
-    .tab-button[data-accent="lime"] { border-color: var(--lime); }
-    .tab-button[data-accent="amber"] { border-color: var(--amber); }
-
-    .tab-icon {
-      display: block;
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
-    /* Tab Views */
-    .tab-view {
-      display: none;
-    }
-
-    .tab-view.active {
-      display: block;
-      animation: fade-in 250ms ease;
-    }
-
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .back-button {
-      background: linear-gradient(145deg, #1a2347, #12183a);
-      border: 2px solid var(--magenta);
-      color: var(--text-light);
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      margin-bottom: 20px;
-      transition: all 200ms ease;
-    }
-
-    .back-button:hover {
-      transform: translateX(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 25px var(--magenta);
-    }
-
-    /* Viewer Container */
-    .viewer-container {
-      background: linear-gradient(145deg, #121832, #0d1124);
-      border: 2px solid var(--border-glow);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 0 30px rgba(51, 246, 255, 0.3);
-    }
-
-    .viewer-header {
-      background: linear-gradient(145deg, #1a2347, #12183a);
-      padding: 16px 20px;
-      border-bottom: 2px solid var(--border-glow);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .viewer-header h2 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(11px, 2vw, 14px);
-      color: var(--neon-cyan);
-      text-transform: uppercase;
-      flex: 1;
-    }
-
-    .status-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--lime);
-      box-shadow: 0 0 10px var(--lime);
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .viewer-body {
-      background: var(--bg-midnight);
-      padding: 4px;
-      min-height: 500px;
-    }
-
-    .viewer-iframe {
-      width: 100%;
-      height: 100vh;
-      border: 0;
-      display: block;
-      background: #000;
-    }
-
-    .viewer-footer {
-      background: linear-gradient(145deg, #12183a, #0d1124);
-      padding: 12px 20px;
-      border-top: 2px solid var(--border-glow);
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Login Modal */
-    .login-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.92);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      animation: modal-fade-in 400ms ease;
-    }
-
-    @keyframes modal-fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .login-box {
-      background: linear-gradient(145deg, #121832, #0d1124);
-      border: 2px solid var(--neon-cyan);
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 0 40px rgba(51, 246, 255, 0.4);
-      animation: modal-slide-in 400ms cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @keyframes modal-slide-in {
-      from { transform: translateY(-30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .login-box h2 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(16px, 4vw, 22px);
-      color: var(--neon-cyan);
-      margin: 0 0 20px;
-      text-align: center;
-      text-shadow: 0 0 15px var(--neon-cyan);
-    }
-
-    .login-box p {
-      color: var(--text-muted);
-      text-align: center;
-      margin-bottom: 30px;
-      line-height: 1.6;
-    }
-
-    .login-input {
-      width: 100%;
-      background: var(--bg-midnight);
-      border: 2px solid rgba(51, 246, 255, 0.3);
-      color: var(--text-light);
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 16px;
-      margin-bottom: 24px;
-      transition: all 200ms ease;
-    }
-
-    .login-input:focus {
-      outline: none;
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(51, 246, 255, 0.3);
-    }
-
-    .login-submit {
-      width: 100%;
-      background: linear-gradient(145deg, #1a2347, #12183a);
-      border: 2px solid var(--lime);
-      color: var(--lime);
-      padding: 16px 20px;
-      border-radius: 10px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 14px;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-      text-shadow: 0 0 10px var(--lime);
-    }
-
-    .login-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 30px var(--lime);
-      background: linear-gradient(145deg, #2a3357, #1a2347);
-    }
-    
-    .login-submit:active {
-      transform: translateY(0);
-    }
-
-    /* Celebrations */
-    .badge-unlock {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(145deg, #121832, #0d1124);
-      border: 3px solid var(--magenta);
-      border-radius: 20px;
-      padding: 40px;
-      z-index: 10001;
-      box-shadow: 0 0 60px rgba(255, 104, 215, 0.6);
-      animation: badge-popup 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      text-align: center;
-      min-width: 300px;
-    }
-
-    @keyframes badge-popup {
-      0% { transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); opacity: 0; }
-      60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
-      100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
-    }
-
-    .badge-unlock-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      display: block;
-      animation: icon-bounce 1s ease infinite;
-    }
-
-    @keyframes icon-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .badge-unlock h3 {
-      font-family: 'Press Start 2P', monospace;
-      color: var(--magenta);
-      font-size: 18px;
-      margin: 0 0 12px;
-      text-shadow: 0 0 15px var(--magenta);
-    }
-
-    .badge-unlock p {
-      color: var(--text-light);
-      font-size: 14px;
-      margin: 0 0 20px;
-    }
-
-    .badge-unlock-close {
-      background: linear-gradient(145deg, #1a2347, #12183a);
-      border: 2px solid var(--magenta);
-      color: var(--text-light);
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 200ms ease;
-    }
-
-    .badge-unlock-close:hover {
-      box-shadow: 0 0 20px var(--magenta);
-      transform: scale(1.05);
-    }
-
-    .xp-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Press Start 2P', monospace;
-      font-size: 32px;
-      color: var(--lime);
-      text-shadow: 0 0 20px var(--lime);
-      z-index: 9999;
-      pointer-events: none;
-      animation: xp-float 1s ease-out forwards;
-    }
-
-    @keyframes xp-float {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-      50% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); }
-      100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
-    }
-
-    .level-flash {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle, rgba(51, 246, 255, 0.4) 0%, transparent 70%);
-      z-index: 9998;
-      pointer-events: none;
-      animation: screen-flash 800ms ease-out;
-    }
-
-    @keyframes screen-flash {
-      0% { opacity: 0; }
-      50% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    /* Hide/Show */
-    .home-view { display: block; }
-    .hidden { display: none !important; }
-
-    /* Responsive */
-    @media (max-width: 920px) {
-      .dash-grid { grid-template-columns: 1fr; }
-    }
-    
-    @media (max-width: 640px) {
-      .tab-grid { grid-template-columns: 1fr; }
-      .header h1 { font-size: 14px; }
-      .module-card { padding: 20px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAET Training System - DC Fundamentals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-mid: #1a1e2e;
+            --panel: #2a2e3e;
+            --cyan: #00ffff;
+            --green: #00ff41;
+            --amber: #ffc857;
+            --magenta: #ff00ff;
+            --text: #ffffff;
+            --text-dim: #8a92a6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid));
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .header .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Progress Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        .xp-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Module Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-card {
+            background: var(--panel);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan);
+            box-shadow: 0 10px 30px rgba(0,255,255,0.3);
+        }
+
+        .module-card.completed {
+            border-color: var(--green);
+            background: linear-gradient(135deg, rgba(0,255,65,0.05), transparent);
+        }
+
+        .module-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .module-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .module-desc {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .module-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.complete {
+            background: rgba(0,255,65,0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        .status-badge.incomplete {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Tab Views */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Module Viewer */
+        .module-viewer {
+            background: var(--panel);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 30px rgba(0,255,255,0.3);
+        }
+
+        .viewer-header {
+            background: linear-gradient(135deg, var(--bg-mid), var(--panel));
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--cyan);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 2px solid var(--magenta);
+            color: var(--text);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--magenta);
+            transform: translateX(-3px);
+        }
+
+        .viewer-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.25rem;
+            color: var(--cyan);
+        }
+
+        .viewer-frame {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            background: #000;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--panel), var(--bg-mid));
+            border: 2px solid var(--green);
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        .notification-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            color: var(--green);
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-body {
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+
+        .notification-xp {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255,200,87,0.2);
+            border: 1px solid var(--amber);
+            color: var(--amber);
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.75rem; }
+            .modules-grid { grid-template-columns: 1fr; }
+            .dashboard { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-  <div class="screen-container">
-    <header class="header">
-      <h1>ACE Training Terminal</h1>
-      <div class="user-bar" id="user-bar" style="display:none;">
-        <span class="welcome">Welcome back, <span id="user-name-display"></span>!</span>
-        <span class="stat">Level <span id="level-display">1</span></span>
-        <span class="stat"><span id="xp-display">0</span> XP</span>
-        <button class="reset-btn" id="reset-btn" title="Reset Progress">⚙️ Reset</button>
-      </div>
-      <p class="subtitle">Principles of Direct Current</p>
-      <div class="divider"></div>
-    </header>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>CAET Training System</h1>
+            <p class="subtitle">Fundamentals of Direct Current - Avionics Training</p>
+        </header>
 
-    <main class="content-wrapper">
-      <!-- Dashboard -->
-      <section id="dashboard">
-        <div class="dash-grid">
-          <div class="card">
-            <h3>Level <span id="level-num">1</span></h3>
-            <div class="xp-bar">
-              <div id="xp-progress" style="width:0%"></div>
+        <!-- Progress Dashboard -->
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-label">Total XP</div>
+                <div class="stat-value" id="total-xp">0</div>
             </div>
-            <p style="margin:0;font-size:12px;color:var(--text-muted);">
-              <span id="xp-current">0</span> / <span id="xp-needed">50</span> XP
-            </p>
-          </div>
-          
-          <div class="card notebooklm-card">
-            <h3>🤖 AI Assistant</h3>
-            <p style="margin:0 0 8px;font-size:12px;color:var(--text-muted);">
-              Organize & analyze your training notes
-            </p>
-            <a href="https://notebooklm.google.com/notebook/0d8bdfcc-eef6-4dca-87c2-c71894115a80?authuser=1" target="_blank" rel="noopener" class="notebooklm-launch">
-              📝 Launch NotebookLM ↗
-            </a>
-          </div>
-          
-          <div class="card">
-            <h3>Badges</h3>
-            <div class="badges" id="badges-container">
-              <em style="font-size:12px;color:var(--text-muted);">No badges yet</em>
+            <div class="stat-card">
+                <div class="stat-label">Level Progress</div>
+                <div class="stat-value" id="level">1</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xp-progress" style="width: 0%"></div>
+                </div>
             </div>
-          </div>
+            <div class="stat-card">
+                <div class="stat-label">Modules Complete</div>
+                <div class="stat-value"><span id="modules-done">0</span>/4</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Best Score</div>
+                <div class="stat-value" id="best-score">0%</div>
+            </div>
         </div>
 
-        <!-- NEW: Detailed Analytics Card -->
-        <div class="card" style="margin-top:16px;background:linear-gradient(145deg,#1a2347,#12183a);border:2px solid var(--lime);">
-          <h3 style="color:var(--lime);">📊 Progress Analytics</h3>
-          <div id="analytics-content" style="font-size:12px;color:var(--text-muted);line-height:1.8;">
-            <p style="margin:8px 0;">🎯 Total Sessions: <span id="total-sessions" style="color:var(--lime);font-weight:bold;">0</span></p>
-            <p style="margin:8px 0;">✨ Lifetime XP Earned: <span id="lifetime-xp" style="color:var(--amber);font-weight:bold;">0</span></p>
-            <p style="margin:8px 0;">📚 Modules Completed: <span id="modules-completed-count" style="color:var(--neon-cyan);font-weight:bold;">0/4</span></p>
-            <p style="margin:8px 0;">🏆 Badges Earned: <span id="badges-earned-count" style="color:var(--magenta);font-weight:bold;">0/12</span></p>
-          </div>
-          <button id="view-history-btn" style="margin-top:12px;padding:8px 16px;background:linear-gradient(145deg,#2a3357,#1a2347);border:1px solid var(--lime);color:var(--lime);border-radius:8px;cursor:pointer;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;transition:all 200ms ease;" onmouseover="this.style.boxShadow='0 0 20px var(--lime)';this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)';">
-            View Score History
-          </button>
+        <!-- Home View -->
+        <div id="home-view" class="tab-content active">
+            <div class="modules-grid">
+                <!-- Classroom Module -->
+                <div class="module-card" id="module-classroom" onclick="openModule('classroom')">
+                    <div class="module-icon">📚</div>
+                    <h3 class="module-title">Classroom</h3>
+                    <p class="module-desc">Interactive lessons on DC fundamentals, Ohm's Law, and circuit analysis</p>
+                    <div class="module-status">
+                        <span class="status-badge incomplete" id="status-classroom">Not Started</span>
+                        <span class="score" id="score-classroom"></span>
+                    </div>
+                </div>
+
+                <!-- Flashcards Module -->
+                <div class="module-card" id="module-flashcards" onclick="openModule('flashcards')">
+                    <div class="module-icon">🎴</div>
+                    <h3 class="module-title">Flash Cards</h3>
+                    <p class="module-desc">Study key terms and concepts with interactive flashcards</p>
+                    <div class="module-status">
+                        <span class="status-badge incomplete" id="status-flashcards">Not Started</span>
+                        <span class="score" id="score-flashcards"></span>
+                    </div>
+                </div>
+
+                <!-- Practice Test Module -->
+                <div class="module-card" id="module-practice" onclick="openModule('practice')">
+                    <div class="module-icon">✍️</div>
+                    <h3 class="module-title">Practice Test</h3>
+                    <p class="module-desc">Test your knowledge with comprehensive practice questions</p>
+                    <div class="module-status">
+                        <span class="status-badge incomplete" id="status-practice">Not Started</span>
+                        <span class="score" id="score-practice"></span>
+                    </div>
+                </div>
+
+                <!-- Jeopardy Module -->
+                <div class="module-card" id="module-jeopardy" onclick="openModule('jeopardy')">
+                    <div class="module-icon">🎯</div>
+                    <h3 class="module-title">Jeopardy Game</h3>
+                    <p class="module-desc">Challenge yourself with our gamified quiz format</p>
+                    <div class="module-status">
+                        <span class="status-badge incomplete" id="status-jeopardy">Not Started</span>
+                        <span class="score" id="score-jeopardy"></span>
+                    </div>
+                </div>
+            </div>
         </div>
-      </section>
 
-      <!-- Home View -->
-      <div id="home-view" class="home-view">
-        <div class="module-card">
-          <h2 class="module-title">Training Modules</h2>
-          <p class="module-desc">
-            Master the fundamentals of Direct Current (DC) electrical systems used in aircraft.
-            Learn to apply Ohm's Law, analyze series/parallel circuits, calculate power,
-            and troubleshoot common faults using the Fluke 87V multimeter on 14V/28V systems.
-          </p>
-
-          <div class="tab-grid">
-            <button class="tab-button" data-tab="classroom" data-accent="cyan" onclick="showTab('classroom')">
-              <span class="tab-icon">📚</span>
-              Classroom
-            </button>
-
-            <button class="tab-button" data-tab="flashcards" data-accent="magenta" onclick="showTab('flashcards')">
-              <span class="tab-icon">🎴</span>
-              Flashcards
-            </button>
-
-            <button class="tab-button" data-tab="practice" data-accent="lime" onclick="showTab('practice')">
-              <span class="tab-icon">✍️</span>
-              Practice Test
-            </button>
-
-            <button class="tab-button" data-tab="jeopardy" data-accent="amber" onclick="showTab('jeopardy')">
-              <span class="tab-icon">🎯</span>
-              Jeopardy
-            </button>
-          </div>
+        <!-- Module Viewer -->
+        <div id="module-view" class="tab-content">
+            <div class="module-viewer">
+                <div class="viewer-header">
+                    <button class="back-btn" onclick="showHome()">← Back</button>
+                    <span class="viewer-title" id="viewer-title">Module</span>
+                </div>
+                <iframe class="viewer-frame" id="module-frame"></iframe>
+            </div>
         </div>
-      </div>
-
-      <!-- Classroom Tab -->
-      <div id="classroom-view" class="tab-view">
-        <button class="back-button" onclick="showTab('home')">◄ Back</button>
-        <div class="viewer-container">
-          <div class="viewer-header">
-            <div class="status-indicator"></div>
-            <h2>Classroom - Interactive Lessons</h2>
-          </div>
-          <div class="viewer-body">
-            <iframe class="viewer-iframe" id="classroom-iframe" src="Classroom-DC.html"></iframe>
-          </div>
-          <div class="viewer-footer">System Status: Online // Module: Classroom</div>
-        </div>
-      </div>
-
-      <!-- Flashcards Tab -->
-      <div id="flashcards-view" class="tab-view">
-        <button class="back-button" onclick="showTab('home')">◄ Back</button>
-        <div class="viewer-container">
-          <div class="viewer-header">
-            <div class="status-indicator"></div>
-            <h2>Flashcards - Study Mode</h2>
-          </div>
-          <div class="viewer-body">
-            <iframe class="viewer-iframe" id="flashcards-iframe" src="Flash Card - DC.html"></iframe>
-          </div>
-          <div class="viewer-footer">System Status: Online // Module: Flashcards (Study Mode)</div>
-        </div>
-      </div>
-
-      <!-- Practice Test Tab -->
-      <div id="practice-view" class="tab-view">
-        <button class="back-button" onclick="showTab('home')">◄ Back</button>
-        <div class="viewer-container">
-          <div class="viewer-header">
-            <div class="status-indicator"></div>
-            <h2>Practice Test - Assessment</h2>
-          </div>
-          <div class="viewer-body">
-            <iframe class="viewer-iframe" id="practice-iframe" src="Practice Test -- DC.html"></iframe>
-          </div>
-          <div class="viewer-footer">System Status: Online // Module: Practice Test</div>
-        </div>
-      </div>
-
-      <!-- Jeopardy Tab -->
-      <div id="jeopardy-view" class="tab-view">
-        <button class="back-button" onclick="showTab('home')">◄ Back</button>
-        <div class="viewer-container">
-          <div class="viewer-header">
-            <div class="status-indicator"></div>
-            <h2>Avionics Jeopardy - Game Mode</h2>
-          </div>
-          <div class="viewer-body">
-            <iframe class="viewer-iframe" id="jeopardy-iframe" src="Jeopardy DC.html"></iframe>
-          </div>
-          <div class="viewer-footer">System Status: Online // Module: Jeopardy</div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- Login Modal -->
-  <div class="login-modal hidden" id="login-modal">
-    <div class="login-box">
-      <h2>🛩️ WELCOME PILOT</h2>
-      <p>Enter your first name to begin your avionics training journey.</p>
-      <form id="login-form">
-        <input type="text" class="login-input" id="name-input" 
-               placeholder="Your First Name" required maxlength="30" autocomplete="off" />
-        <button type="submit" class="login-submit">Begin Training</button>
-      </form>
     </div>
-  </div>
 
-  <script>
-    // =============================================================================
-    // GAMIFICATION SYSTEM - COMPLETE WITH ALL MODULES
-    // =============================================================================
-    
-    const BADGES = [
-      { id: 'first_flight', name: '🛩️ First Flight', desc: 'Complete your first module' },
-      { id: 'scholar', name: '📚 Scholar', desc: 'Complete all 4 modules' },
-      { id: 'rising_star', name: '⭐ Rising Star', desc: 'Score 80%+ on any quiz' },
-      { id: 'sharpshooter', name: '🎯 Sharpshooter', desc: 'Score 90%+ on any quiz' },
-      { id: 'perfectionist', name: '💯 Perfectionist', desc: 'Score 100% on any quiz' },
-      { id: 'champion', name: '🏆 Champion', desc: 'Reach Level 5' },
-      { id: 'on_fire', name: '🔥 On Fire', desc: 'Complete 3 modules in one session' },
-      { id: 'master_aviator', name: '✈️ Master Aviator', desc: 'Score 80%+ on all 4 modules' },
-      { id: 'quick_learner', name: '⚡ Quick Learner', desc: 'Score 90%+ on first try' },
-      { id: 'improvement', name: '📈 Improvement', desc: 'Score 20% higher on retake' },
-      { id: 'practice_makes_perfect', name: '📝 Practice Makes Perfect', desc: 'Complete practice test 3 times' },
-      { id: 'game_master', name: '🎮 Game Master', desc: 'Win at Jeopardy' },
-    ];
-
-    let gameState = {
-      userName: null,
-      xp: 0,
-      level: 1,
-      badges: [],
-      completedModules: [],
-      moduleAttempts: {},
-      moduleScores: {},
-      sessionModules: [],
-      scoreHistory: {},      // NEW: Track all attempts with timestamps
-      totalXPEarned: 0,      // NEW: Lifetime XP tracker
-      sessionsCompleted: 0   // NEW: Total learning sessions
-    };
-
-    function loadGameState() {
-      const saved = localStorage.getItem('aeaGameState');
-      if (saved) {
-        gameState = { ...gameState, ...JSON.parse(saved) };
-        updateDisplay();
-      }
-    }
-
-    function saveGameState() {
-      localStorage.setItem('aeaGameState', JSON.stringify(gameState));
-    }
-
-    function xpForLevel(level) {
-      if (level === 1) return 0;
-      let total = 0;
-      let needed = 50;
-      for (let i = 2; i <= level; i++) {
-        total += needed;
-        needed = Math.round(needed * 1.25);
-      }
-      return total;
-    }
-
-    function calculateLevel(totalXP) {
-      let level = 1;
-      let xpNeeded = 50;
-      let xpProgress = totalXP;
-      
-      while (xpProgress >= xpNeeded) {
-        xpProgress -= xpNeeded;
-        level++;
-        xpNeeded = Math.round(xpNeeded * 1.25);
-      }
-      
-      return { level, xpProgress, xpNeeded };
-    }
-
-    function awardXP(module, score, attemptNumber) {
-      // CRITICAL FIX: Use attemptNumber parameter instead of reading from state
-      // This prevents the off-by-one bug where first attempt got 50% XP
-      const attempts = attemptNumber;
-      let baseXP = 0;
-
-      // First time completion bonus
-      if (attempts === 0 && !gameState.completedModules.includes(module)) {
-        baseXP += 20;
-      }
-
-      // Diminishing returns on repeated attempts
-      const diminishFactors = [1.0, 0.5, 0.3, 0.1];
-      const factor = diminishFactors[Math.min(attempts, 3)];
-
-      // Score-based XP
-      let scoreXP = 0;
-      if (score >= 90) {
-        scoreXP = 15;
-      } else if (score >= 80) {
-        scoreXP = 10;
-      } else if (score >= 70) {
-        scoreXP = 5;
-      }
-
-      // FLASHCARDS GET 50% XP (it's study mode, not assessment)
-      if (module === 'flashcards') {
-        scoreXP = Math.round(scoreXP * 0.5);
-        baseXP = Math.round(baseXP * 0.5);
-      }
-
-      baseXP += Math.round(scoreXP * factor);
-
-      if (baseXP > 0) {
-        const oldLevel = gameState.level;
-        gameState.xp += baseXP;
-        gameState.totalXPEarned += baseXP; // NEW: Track lifetime XP
-
-        const newStats = calculateLevel(gameState.xp);
-        gameState.level = newStats.level;
-
-        showXPGain(baseXP);
-
-        if (newStats.level > oldLevel) {
-          showLevelUp(newStats.level);
-          checkBadge('champion');
-        }
-      }
-
-      return baseXP;
-    }
-
-    function checkBadge(type) {
-      if (type === 'first_module' && !gameState.badges.includes('first_flight')) {
-        if (gameState.completedModules.length === 1) {
-          awardBadge('first_flight');
-        }
-      }
-      
-      if (type === 'all_modules' && !gameState.badges.includes('scholar')) {
-        if (gameState.completedModules.length === 4) {
-          awardBadge('scholar');
-        }
-      }
-      
-      if (type === 'score') {
-        const scores = Object.values(gameState.moduleScores);
-        const maxScore = Math.max(...scores);
+    <script>
+        // ============================================================================
+        // CAET Training System - Clean Gamification
+        // ============================================================================
         
-        if (maxScore >= 80 && !gameState.badges.includes('rising_star')) {
-          awardBadge('rising_star');
-        }
-        if (maxScore >= 90 && !gameState.badges.includes('sharpshooter')) {
-          awardBadge('sharpshooter');
-        }
-        if (maxScore === 100 && !gameState.badges.includes('perfectionist')) {
-          awardBadge('perfectionist');
-        }
-        
-        if (!gameState.badges.includes('master_aviator')) {
-          const allModules = ['classroom', 'flashcards', 'practice', 'jeopardy'];
-          const allAbove80 = allModules.every(m => (gameState.moduleScores[m] || 0) >= 80);
-          if (allAbove80) {
-            awardBadge('master_aviator');
-          }
-        }
-      }
-      
-      if (type === 'champion' && !gameState.badges.includes('champion')) {
-        if (gameState.level >= 5) {
-          awardBadge('champion');
-        }
-      }
-      
-      if (type === 'on_fire' && !gameState.badges.includes('on_fire')) {
-        if (gameState.sessionModules.length >= 3) {
-          awardBadge('on_fire');
-        }
-      }
-      
-      // Practice Makes Perfect badge
-      if (type === 'practice_repeater' && !gameState.badges.includes('practice_makes_perfect')) {
-        if ((gameState.moduleAttempts['practice'] || 0) >= 3) {
-          awardBadge('practice_makes_perfect');
-        }
-      }
-      
-      // Game Master badge (won Jeopardy)
-      if (type === 'jeopardy_win' && !gameState.badges.includes('game_master')) {
-        awardBadge('game_master');
-      }
-    }
-
-    function awardBadge(badgeId) {
-      const badge = BADGES.find(b => b.id === badgeId);
-      if (badge && !gameState.badges.includes(badgeId)) {
-        gameState.badges.push(badgeId);
-        showBadgeUnlock(badge);
-        updateDisplay();
-        saveGameState();
-      }
-    }
-
-    function showXPGain(amount) {
-      const popup = document.createElement('div');
-      popup.className = 'xp-popup';
-      popup.textContent = `+${amount} XP`;
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 1000);
-    }
-
-    function showLevelUp(newLevel) {
-      const flash = document.createElement('div');
-      flash.className = 'level-flash';
-      document.body.appendChild(flash);
-      setTimeout(() => flash.remove(), 800);
-      
-      setTimeout(() => {
-        alert(`🎉 LEVEL UP!\n\nYou've reached Level ${newLevel}!\nKeep up the great work!`);
-      }, 400);
-    }
-
-    function showBadgeUnlock(badge) {
-      const modal = document.createElement('div');
-      modal.className = 'badge-unlock';
-      modal.innerHTML = `
-        <span class="badge-unlock-icon">${badge.name.split(' ')[0]}</span>
-        <h3>Badge Unlocked!</h3>
-        <p>${badge.name}</p>
-        <p style="font-size:12px;color:var(--text-muted);">${badge.desc}</p>
-        <button class="badge-unlock-close" onclick="this.parentElement.remove()">Awesome!</button>
-      `;
-      document.body.appendChild(modal);
-      setTimeout(() => { if (modal.parentNode) modal.remove(); }, 5000);
-    }
-
-    // MAIN COMPLETION FUNCTION - Called from child iframes
-    function completeModule(module, score) {
-      console.log(`Module completed: ${module}, Score: ${score}%`);
-
-      // CRITICAL FIX: Get attempt number BEFORE incrementing
-      const currentAttempt = gameState.moduleAttempts[module] || 0;
-
-      // Initialize tracking objects if needed
-      if (!gameState.moduleAttempts[module]) {
-        gameState.moduleAttempts[module] = 0;
-      }
-      if (!gameState.scoreHistory[module]) {
-        gameState.scoreHistory[module] = [];
-      }
-
-      // Increment attempt counter
-      gameState.moduleAttempts[module]++;
-      gameState.sessionsCompleted++;
-
-      // Add to score history with timestamp
-      gameState.scoreHistory[module].push({
-        attempt: gameState.moduleAttempts[module],
-        score: score,
-        timestamp: new Date().toISOString(),
-        xpEarned: 0 // Will be updated below
-      });
-
-      // Track best score
-      const oldScore = gameState.moduleScores[module] || 0;
-      if (!gameState.moduleScores[module] || gameState.moduleScores[module] < score) {
-        gameState.moduleScores[module] = score;
-
-        // Check for improvement badge
-        if (oldScore > 0 && (score - oldScore) >= 20 && !gameState.badges.includes('improvement')) {
-          awardBadge('improvement');
-        }
-      }
-
-      // Mark as completed
-      if (!gameState.completedModules.includes(module)) {
-        gameState.completedModules.push(module);
-        gameState.sessionModules.push(module);
-      }
-
-      // Check for quick learner badge (90%+ on first try)
-      if (currentAttempt === 0 && score >= 90 && !gameState.badges.includes('quick_learner')) {
-        awardBadge('quick_learner');
-      }
-
-      // Award XP with CORRECT attempt number (before increment)
-      const xpEarned = awardXP(module, score, currentAttempt);
-
-      // Update the score history entry with actual XP earned
-      if (gameState.scoreHistory[module].length > 0) {
-        gameState.scoreHistory[module][gameState.scoreHistory[module].length - 1].xpEarned = xpEarned;
-      }
-
-      // Check badges
-      if (gameState.completedModules.length === 1) checkBadge('first_module');
-      if (gameState.completedModules.length === 4) checkBadge('all_modules');
-      checkBadge('score');
-      checkBadge('on_fire');
-      checkBadge('practice_repeater');
-
-      // Special Jeopardy win badge
-      if (module === 'jeopardy' && score > 50) {
-        checkBadge('jeopardy_win');
-      }
-
-      // Show enhanced completion message
-      let message = `🎯 Module Complete: ${module.toUpperCase()}\n\n`;
-      message += `📊 Score: ${score}%`;
-      if (oldScore > 0 && score > oldScore) {
-        message += ` (Previous best: ${oldScore}%)`;
-      }
-      message += `\n✨ XP Earned: +${xpEarned}`;
-      message += `\n📈 Total XP: ${gameState.xp}`;
-      message += `\n🏆 Level: ${gameState.level}`;
-      message += `\n🔄 Attempt: #${gameState.moduleAttempts[module]}`;
-      message += `\n\n${score >= 70 ? '✅ PASSED!' : '❌ Keep studying!'}`;
-
-      if (module === 'flashcards') {
-        message += '\n\n💡 Study mode: 50% XP';
-      }
-
-      if (currentAttempt > 0) {
-        const diminishFactors = [1.0, 0.5, 0.3, 0.1];
-        const factor = diminishFactors[Math.min(currentAttempt, 3)];
-        const percentage = Math.round(factor * 100);
-        message += `\n⚡ XP Multiplier: ${percentage}%`;
-      }
-
-      alert(message);
-
-      updateDisplay();
-      saveGameState();
-    }
-
-    function updateDisplay() {
-      const stats = calculateLevel(gameState.xp);
-
-      // Update level and XP displays
-      document.getElementById('level-display').textContent = stats.level;
-      document.getElementById('level-num').textContent = stats.level;
-      document.getElementById('xp-display').textContent = gameState.xp;
-      document.getElementById('xp-current').textContent = stats.xpProgress;
-      document.getElementById('xp-needed').textContent = stats.xpNeeded;
-      document.getElementById('xp-progress').style.width =
-        `${(stats.xpProgress / stats.xpNeeded) * 100}%`;
-
-      // Update badges display
-      const badgesContainer = document.getElementById('badges-container');
-      if (gameState.badges.length > 0) {
-        badgesContainer.innerHTML = gameState.badges.map(badgeId => {
-          const badge = BADGES.find(b => b.id === badgeId);
-          return `<span class="badge" title="${badge.desc}">${badge.name}</span>`;
-        }).join('');
-      }
-
-      // NEW: Update analytics display
-      document.getElementById('total-sessions').textContent = gameState.sessionsCompleted || 0;
-      document.getElementById('lifetime-xp').textContent = gameState.totalXPEarned || 0;
-      document.getElementById('modules-completed-count').textContent =
-        `${gameState.completedModules.length}/4`;
-      document.getElementById('badges-earned-count').textContent =
-        `${gameState.badges.length}/${BADGES.length}`;
-
-      // Update user display
-      if (gameState.userName) {
-        document.getElementById('user-name-display').textContent = gameState.userName;
-        document.getElementById('user-bar').style.display = 'flex';
-      }
-    }
-
-    function showTab(tabName) {
-      document.getElementById('home-view').style.display = 'none';
-      document.getElementById('classroom-view').classList.remove('active');
-      document.getElementById('flashcards-view').classList.remove('active');
-      document.getElementById('practice-view').classList.remove('active');
-      document.getElementById('jeopardy-view').classList.remove('active');
-      
-      if (tabName === 'home') {
-        document.getElementById('home-view').style.display = 'block';
-      } else {
-        document.getElementById(tabName + '-view').classList.add('active');
-      }
-      
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function showLogin() {
-      if (!gameState.userName) {
-        document.getElementById('login-modal').classList.remove('hidden');
-        document.getElementById('name-input').focus();
-      }
-    }
-
-    // NEW: Show Score History Modal
-    function showScoreHistory() {
-      if (!gameState.scoreHistory || Object.keys(gameState.scoreHistory).length === 0) {
-        alert('📊 No score history yet!\n\nComplete some modules to see your progress over time.');
-        return;
-      }
-
-      let historyHTML = '📊 SCORE HISTORY\n\n';
-
-      const modules = ['classroom', 'flashcards', 'practice', 'jeopardy'];
-      modules.forEach(module => {
-        const history = gameState.scoreHistory[module];
-        if (history && history.length > 0) {
-          historyHTML += `\n${module.toUpperCase()}:\n`;
-          history.forEach((entry, idx) => {
-            const date = new Date(entry.timestamp).toLocaleDateString();
-            const time = new Date(entry.timestamp).toLocaleTimeString();
-            historyHTML += `  ${idx + 1}. ${entry.score}% (+${entry.xpEarned} XP) - ${date} ${time}\n`;
-          });
-
-          // Show improvement
-          if (history.length > 1) {
-            const first = history[0].score;
-            const last = history[history.length - 1].score;
-            const improvement = last - first;
-            historyHTML += `  📈 Improvement: ${improvement > 0 ? '+' : ''}${improvement}%\n`;
-          }
-        }
-      });
-
-      historyHTML += '\n✨ Keep up the great work!';
-      alert(historyHTML);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      loadGameState();
-
-      const loginForm = document.getElementById('login-form');
-      if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const name = document.getElementById('name-input').value.trim();
-          if (name) {
-            gameState.userName = name;
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('user-name-display').textContent = name;
-            document.getElementById('user-bar').style.display = 'flex';
-            updateDisplay();
-            saveGameState();
-          }
-        });
-      }
-
-      const resetBtn = document.getElementById('reset-btn');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-          if (confirm('⚠️ Reset all progress?\n\nThis will delete:\n• XP and level\n• All badges\n• Module scores\n• Score history\n\nThis cannot be undone!')) {
-            localStorage.removeItem('aeaGameState');
-            location.reload();
-          }
-        });
-      }
-
-      // NEW: Attach score history button handler
-      const viewHistoryBtn = document.getElementById('view-history-btn');
-      if (viewHistoryBtn) {
-        viewHistoryBtn.addEventListener('click', showScoreHistory);
-      }
-
-      showLogin();
-      updateDisplay();
-    });
-
-    // Make completeModule available globally for child iframes
-    window.completeModule = completeModule;
-
-    // DEBUG UTILITY: Console helper for XP calculations
-    window.debugGameState = function() {
-      console.log('=== GAMIFICATION DEBUG INFO ===');
-      console.log('User:', gameState.userName);
-      console.log('Current XP:', gameState.xp);
-      console.log('Lifetime XP Earned:', gameState.totalXPEarned);
-      console.log('Current Level:', gameState.level);
-      console.log('Sessions Completed:', gameState.sessionsCompleted);
-      console.log('Badges:', gameState.badges.length, '/', BADGES.length);
-      console.log('\nModule Progress:');
-      ['classroom', 'flashcards', 'practice', 'jeopardy'].forEach(module => {
-        const attempts = gameState.moduleAttempts[module] || 0;
-        const bestScore = gameState.moduleScores[module] || 0;
-        const history = gameState.scoreHistory[module] || [];
-        console.log(`  ${module}:`, {
-          attempts,
-          bestScore: bestScore + '%',
-          totalXP: history.reduce((sum, h) => sum + h.xpEarned, 0),
-          history: history.map(h => `${h.score}% (+${h.xpEarned}XP)`)
-        });
-      });
-      console.log('\nScore History:', gameState.scoreHistory);
-      console.log('===============================');
-      return gameState;
-    };
-  </script>
-
-<!-- LMS Progress Tracking -->
-<script>
-// CAET LMS Integration
-(function() {
-    // IMPORTANT: Update this for each lesson
-    const LESSON_NUMBER = 1; // Change to 1, 2, 3, or 4 based on lesson
-    const MODULE_ID = 'electricity'; // or 'maintenance', 'systems' based on module
-    const LESSON_XP = 100; // Update based on lesson: L1=100, L2=120, L3=100, L4=80
-
-    // Initialize tracking
-    let startTime = Date.now();
-    let progress = 0;
-    const storageKey = 'caet_lms_' + MODULE_ID;
-
-    // Track page scroll for progress
-    window.addEventListener('scroll', function() {
-        const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
-        progress = Math.min(100, Math.round(scrollPercent));
-
-        // Save progress every 20%
-        if (progress % 20 === 0) {
-            saveProgress();
-        }
-    });
-
-    // Save progress function
-    function saveProgress() {
-        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
-        if (!lmsState.lessons) lmsState.lessons = {};
-        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
-
-        lmsState.lessons[LESSON_NUMBER].progress = progress;
-        lmsState.lessons[LESSON_NUMBER].lastAccessed = new Date().toISOString();
-
-        localStorage.setItem(storageKey, JSON.stringify(lmsState));
-    }
-
-    // Complete lesson function
-    window.completeLesson = function() {
-        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
-
-        // Initialize structure if needed
-        if (!lmsState.lessons) lmsState.lessons = {};
-        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
-
-        // Mark as complete
-        lmsState.lessons[LESSON_NUMBER].completed = true;
-        lmsState.lessons[LESSON_NUMBER].progress = 100;
-        lmsState.lessons[LESSON_NUMBER].completedAt = new Date().toISOString();
-
-        // Award XP
-        lmsState.totalXP = (lmsState.totalXP || 0) + LESSON_XP;
-
-        // Check for badge unlocks
-        if (LESSON_NUMBER === 1) lmsState.badges = {...(lmsState.badges || {}), 1: true};
-        if (LESSON_NUMBER === 2) lmsState.badges = {...(lmsState.badges || {}), 2: true};
-        if (LESSON_NUMBER === 4) lmsState.badges = {...(lmsState.badges || {}), 3: true};
-
-        // Check module completion
-        const allComplete = [1,2,3,4].every(num =>
-            lmsState.lessons[num] && lmsState.lessons[num].completed
-        );
-        if (allComplete) lmsState.badges = {...(lmsState.badges || {}), 4: true};
-
-        localStorage.setItem(storageKey, JSON.stringify(lmsState));
-
-        // Show success message
-        const successDiv = document.createElement('div');
-        successDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #00ff41, #00cc33);
-            color: #000;
-            padding: 2rem 3rem;
-            border-radius: 10px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: bold;
-            z-index: 10000;
-            box-shadow: 0 0 50px rgba(0, 255, 65, 0.8);
-            animation: popIn 0.5s ease;
-        `;
-        successDiv.innerHTML = `
-            <div>✓ LESSON COMPLETE!</div>
-            <div style="font-size: 1rem; margin-top: 0.5rem;">+${LESSON_XP} XP EARNED</div>
-        `;
-        document.body.appendChild(successDiv);
-
-        // Add animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes popIn {
-                0% { transform: translate(-50%, -50%) scale(0) rotate(180deg); opacity: 0; }
-                50% { transform: translate(-50%, -50%) scale(1.2) rotate(0); }
-                100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+        class TrainingSystem {
+            constructor() {
+                this.state = this.loadState();
+                this.updateDisplay();
             }
-        `;
-        document.head.appendChild(style);
 
-        // Redirect to dashboard after delay
-        setTimeout(() => {
-            window.location.href = '/caet-dashboard?completed=' + LESSON_NUMBER;
-        }, 2000);
-    }
+            loadState() {
+                const saved = localStorage.getItem('caet_training_state');
+                return saved ? JSON.parse(saved) : {
+                    totalXP: 0,
+                    level: 1,
+                    modules: {
+                        classroom: { completed: false, score: 0, attempts: 0 },
+                        flashcards: { completed: false, score: 0, attempts: 0 },
+                        practice: { completed: false, score: 0, attempts: 0 },
+                        jeopardy: { completed: false, score: 0, attempts: 0 }
+                    }
+                };
+            }
 
-    // Add completion button if it doesn't exist
-    window.addEventListener('load', function() {
-        // Check if button already exists
-        if (!document.getElementById('lms-complete-btn')) {
-            // Find the best place to add button (end of content or existing button container)
-            const contentEnd = document.querySelector('.lesson-content, .content, main, body');
+            saveState() {
+                localStorage.setItem('caet_training_state', JSON.stringify(this.state));
+            }
 
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.cssText = `
-                position: fixed;
-                bottom: 30px;
-                right: 30px;
-                z-index: 9999;
-            `;
+            calculateXP(module, score) {
+                // Simple XP calculation
+                const baseXP = {
+                    classroom: 25,
+                    flashcards: 15,
+                    practice: 30,
+                    jeopardy: 35
+                };
 
-            buttonContainer.innerHTML = `
-                <button id="lms-complete-btn" onclick="completeLesson()" style="
-                    background: linear-gradient(45deg, #00ff41, #00cc33);
-                    color: #000;
-                    border: none;
-                    padding: 1rem 2rem;
-                    font-family: 'Orbitron', monospace;
-                    font-size: 1rem;
-                    font-weight: bold;
-                    text-transform: uppercase;
-                    cursor: pointer;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.4);
-                    transition: all 0.3s ease;
-                ">
-                    Complete Lesson ✓
-                </button>
-                <a href="/caet-dashboard" style="
-                    display: block;
-                    margin-top: 10px;
-                    text-align: center;
-                    color: #ffcc00;
-                    text-decoration: none;
-                    font-family: monospace;
-                ">
-                    ← Back to Dashboard
-                </a>
-            `;
+                let xp = baseXP[module] || 20;
+                
+                // Score multiplier
+                if (score >= 90) xp *= 1.5;
+                else if (score >= 80) xp *= 1.2;
+                else if (score >= 70) xp *= 1.0;
+                else xp *= 0.5;
 
-            document.body.appendChild(buttonContainer);
+                // First completion bonus
+                if (!this.state.modules[module].completed) {
+                    xp += 10;
+                }
 
-            // Add hover effect
-            const btn = document.getElementById('lms-complete-btn');
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'scale(1.05)';
-                btn.style.boxShadow = '0 6px 25px rgba(0, 255, 65, 0.6)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'scale(1)';
-                btn.style.boxShadow = '0 4px 15px rgba(0, 255, 65, 0.4)';
-            });
+                return Math.round(xp);
+            }
+
+            completeModule(module, score) {
+                console.log(`[Training] Module complete: ${module}, Score: ${score}%`);
+
+                const xpEarned = this.calculateXP(module, score);
+                
+                // Update module state
+                const moduleState = this.state.modules[module];
+                moduleState.completed = true;
+                moduleState.attempts++;
+                if (score > moduleState.score) {
+                    moduleState.score = score;
+                }
+
+                // Update XP and level
+                this.state.totalXP += xpEarned;
+                this.state.level = Math.floor(this.state.totalXP / 100) + 1;
+
+                // Save and update display
+                this.saveState();
+                this.updateDisplay();
+
+                // Show notification
+                this.showNotification(module, score, xpEarned);
+
+                return xpEarned;
+            }
+
+            updateDisplay() {
+                // Update stats
+                document.getElementById('total-xp').textContent = this.state.totalXP;
+                document.getElementById('level').textContent = this.state.level;
+                
+                // XP progress bar
+                const xpInLevel = this.state.totalXP % 100;
+                document.getElementById('xp-progress').style.width = xpInLevel + '%';
+
+                // Modules completed
+                const completed = Object.values(this.state.modules).filter(m => m.completed).length;
+                document.getElementById('modules-done').textContent = completed;
+
+                // Best score
+                const scores = Object.values(this.state.modules).map(m => m.score);
+                const bestScore = Math.max(...scores, 0);
+                document.getElementById('best-score').textContent = bestScore + '%';
+
+                // Update module cards
+                Object.keys(this.state.modules).forEach(module => {
+                    const moduleState = this.state.modules[module];
+                    const card = document.getElementById('module-' + module);
+                    const statusBadge = document.getElementById('status-' + module);
+                    const scoreDisplay = document.getElementById('score-' + module);
+
+                    if (moduleState.completed) {
+                        card.classList.add('completed');
+                        statusBadge.className = 'status-badge complete';
+                        statusBadge.textContent = 'Complete';
+                        scoreDisplay.textContent = `Best: ${moduleState.score}%`;
+                    } else {
+                        card.classList.remove('completed');
+                        statusBadge.className = 'status-badge incomplete';
+                        statusBadge.textContent = 'Not Started';
+                        scoreDisplay.textContent = '';
+                    }
+                });
+            }
+
+            showNotification(module, score, xp) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <div class="notification-title">✅ Module Complete!</div>
+                    <div class="notification-body">
+                        ${module.charAt(0).toUpperCase() + module.slice(1)}: ${score}%
+                        <br>
+                        <span class="notification-xp">+${xp} XP</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            reset() {
+                if (confirm('Reset all progress? This cannot be undone!')) {
+                    localStorage.removeItem('caet_training_state');
+                    location.reload();
+                }
+            }
         }
-    });
 
-    // Save progress on page unload
-    window.addEventListener('beforeunload', saveProgress);
-})();
-</script>
+        // Initialize system
+        const trainingSystem = new TrainingSystem();
+
+        // Module management
+        function openModule(module) {
+            const urls = {
+                classroom: 'classroom-clean.html',
+                flashcards: 'flashcards-clean.html',
+                practice: 'practice-clean.html',
+                jeopardy: 'jeopardy-clean.html'
+            };
+
+            document.getElementById('home-view').classList.remove('active');
+            document.getElementById('module-view').classList.add('active');
+            document.getElementById('viewer-title').textContent = module.charAt(0).toUpperCase() + module.slice(1);
+            document.getElementById('module-frame').src = urls[module];
+        }
+
+        function showHome() {
+            document.getElementById('module-view').classList.remove('active');
+            document.getElementById('home-view').classList.add('active');
+            document.getElementById('module-frame').src = '';
+        }
+
+        // Listen for module completion messages
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'module-complete') {
+                trainingSystem.completeModule(event.data.module, event.data.score);
+            }
+        });
+
+        // Make completeModule available globally for backwards compatibility
+        window.completeModule = function(module, score) {
+            return trainingSystem.completeModule(module, score);
+        };
+
+        // Debug commands
+        window.debugTraining = {
+            completeModule: (module, score) => trainingSystem.completeModule(module, score),
+            reset: () => trainingSystem.reset(),
+            getState: () => trainingSystem.state
+        };
+
+        console.log('[Training System] Ready. Debug commands: debugTraining.completeModule("classroom", 85), debugTraining.reset(), debugTraining.getState()');
+    </script>
 </body>
 </html>
