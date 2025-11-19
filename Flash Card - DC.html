@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+  <script src="progress-tracker.js"></script>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title> CAET Flash Cards – Standalone </title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #f8fafc; /* slate-50 */
+      --card: #ffffff;
+      --text: #0f172a; /* slate-900 */
+      --muted: #64748b; /* slate-500 */
+      --border: #e2e8f0; /* slate-200 */
+      --ring: #cbd5e1; /* slate-300 */
+      --green: #16a34a; /* green-600 */
+      --green-50: #ecfdf5;
+      --yellow: #f59e0b; /* yellow-500 */
+      --yellow-50: #fffbeb;
+      --red: #dc2626; /* red-600 */
+      --red-50: #fef2f2;
+      --shadow: 0 10px 20px rgba(2, 6, 23, 0.06), 0 2px 6px rgba(2, 6, 23, 0.06);
+    }
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(to bottom,var(--bg),#fff);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{margin:0;font-size:28px;letter-spacing:-0.01em;display:flex;align-items:center;gap:10px}
+    .sparkle{width:24px;height:24px}
+    .deck-switch{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:6px;background:#fff;box-shadow:var(--shadow)}
+    .chip{border:1px solid transparent;background:transparent;color:var(--text);padding:6px 12px;border-radius:999px;cursor:pointer}
+    .chip.active{background:#111827;color:#fff}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+    .card h2{margin:0;padding:16px 20px;border-bottom:1px solid var(--border);font-size:18px}
+    .card .content{padding:18px 20px}
+
+    .flip{position:relative;height:300px;border-radius:16px;border:1px solid var(--border);background:#fff;cursor:pointer;user-select:none;perspective:1000px}
+    .flip-inner{position:relative;height:100%;transform-style:preserve-3d;transition:transform .4s}
+    .flip .face{position:absolute;inset:0;display:grid;place-items:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:16px;text-align:center}
+    .flip .back{transform:rotateY(180deg)}
+    .flip.is-flipped .flip-inner{transform:rotateY(180deg)}
+
+    .meta{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+    .term{font-size:28px;font-weight:700;margin-top:6px}
+    .unit{font-size:14px;color:var(--muted);margin-top:4px}
+    .badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:12px;margin:4px 4px 0 0}
+
+    .def{max-width:70ch;font-size:18px;line-height:1.4;max-height:180px;overflow:auto;padding-right:8px}
+
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer}
+    .btn:focus{outline:2px solid var(--ring);outline-offset:2px}
+    .btn-outline{background:#fff}
+    .btn-primary{background:#111827;color:#fff;border-color:#111827}
+    .btn-ghost{background:transparent}
+
+    .btn-green{color:var(--green);border-color:#bbf7d0;background:var(--green-50)}
+    .btn-green.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .btn-yellow{color:var(--yellow);border-color:#fef3c7;background:var(--yellow-50)}
+    .btn-yellow.active{background:var(--yellow);color:#fff;border-color:var(--yellow)}
+    .btn-red{color:var(--red);border-color:#fecaca;background:var(--red-50)}
+    .btn-red.active{background:var(--red);color:#fff;border-color:var(--red)}
+
+    .list{max-height:330px;overflow:auto;padding-right:6px}
+    .list-item{border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
+    .list-item .title{font-weight:600}
+    .list-item .line{color:var(--muted);font-size:12px;margin-top:6px}
+
+    .bottom{margin-top:20px}
+    .tags{display:flex;flex-wrap:wrap;gap:8px}
+    .tag{border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:#fff;cursor:pointer}
+    .tag.active{background:#111827;color:#fff;border-color:#111827}
+
+    .search{display:flex;align-items:center;gap:10px;margin-top:12px}
+    .search input{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px}
+
+    .empty{padding:28px;text-align:center;color:var(--muted)}
+
+    @media (max-width:720px){
+      header{flex-direction:column;align-items:flex-start;gap:12px}
+      .row{flex-direction:column;align-items:stretch}
+      .def{max-height:150px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        <svg class="sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2l1.9 4.6L18 8l-4.1 1.4L12 14l-1.9-4.6L6 8l4.1-1.4L12 2z"/>
+        </svg>
+        AEA Interactive Glossary
+      </h1>
+      <div class="deck-switch" id="deckSwitch">
+        <button class="chip active" data-deck="all">All</button>
+        <button class="chip" data-deck="easy">Easy <span class="count" data-count="easy"></span></button>
+        <button class="chip" data-deck="medium">Medium <span class="count" data-count="medium"></span></button>
+        <button class="chip" data-deck="difficult">Difficult <span class="count" data-count="difficult"></span></button>
+      </div>
+      <button class="btn btn-primary" id="finishSession" style="margin-top:8px;width:100%;max-width:200px;">Finish Session</button>
+    </header>
+
+    <section class="card">
+      <h2>Study <span class="meta" style="margin-left:8px">[Space: Flip • ←/→: Prev/Next]</span></h2>
+      <div class="content">
+        <div class="flip" id="flip">
+          <div class="flip-inner" id="flipInner">
+            <div class="face front" id="front"></div>
+            <div class="face back" id="back"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row" id="ratingRow">
+            <button class="btn btn-green" id="rateEasy">Easy</button>
+            <button class="btn btn-yellow" id="rateMedium">Medium</button>
+            <button class="btn btn-red" id="rateDifficult">Difficult</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-outline" id="prev">Prev</button>
+            <button class="btn btn-primary" id="next">Next ▶</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>List View</h2>
+      <div class="content">
+        <div class="list" id="list"></div>
+      </div>
+    </section>
+
+    <section class="card bottom" style="margin-bottom:8px">
+      <h2>Filter</h2>
+      <div class="content">
+        <div class="tags" id="tags"></div>
+        <div class="search">
+          <input id="search" type="search" placeholder="Search term, definition, unit, or tag" />
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(function(){
+  // ---------- Data (embedded directly – no document.write) ----------
+  const FIXED_CARDS = [
+  
+  {
+    "term": "Voltage (V)",
+    "definition": "The electrical pressure or potential difference that causes electrons to flow, often symbolized as E (electromotive force) or V, and is measured in Volts (V) [4-6]. In aircraft, standard DC voltages are typically 14V or 28V [3, 4, 7, 8].",
+    "analogy": "The height of a waterfall or the water pressure in a hose [4-6, 9].",
+    "unit": "Volt (V)",
+    "tags": "DC 101|fundamentals|measurement"
+  },
+  {
+    "term": "Current (I)",
+    "definition": "The flow rate of electrons (electrical charge) through a conductor, measured in Amperes (A) [7, 9-11]. Controlling current is essential for safe avionics operation [12].",
+    "analogy": "The flow rate or amount of water moving through a pipe or hose [9, 10, 13].",
+    "unit": "Ampere (A)",
+    "tags": "DC 101|fundamentals|measurement"
+  },
+  {
+    "term": "Resistance (R)",
+    "definition": "The opposition or 'friction' to electron flow through a material, measured in Ohms ($\\Omega$) [9, 13-15]. Resistance is used to control current and protect sensitive avionics components [12, 16].",
+    "analogy": "Rocks in a riverbed that impede water flow, or the diameter of a hose (smaller hose = higher resistance) [9, 13, 14].",
+    "unit": "Ohm ($\\Omega$)",
+    "tags": "DC 101|fundamentals|measurement"
+  },
+  {
+    "term": "Ohm’s Law (V=I×R)",
+    "definition": "The fundamental mathematical relationship describing voltage, current, and resistance: Voltage equals Current multiplied by Resistance (V = I × R) [2, 10, 12, 17, 18]. This is the most important tool for troubleshooting electrical issues [12, 19].",
+    "analogy": "The backbone of every electrical problem solved in a small aircraft [19].",
+    "unit": "DC 102 (Formula)",
+    "tags": "formula|troubleshooting"
+  },
+  {
+    "term": "Ohm’s Law Triangle",
+    "definition": "A visual memory aid used by technicians where V is placed at the top, and I and R are at the base; covering the desired variable reveals the correct formula [20, 21].",
+    "analogy": "A fast, foolproof method to recall the three core electrical relationships [20].",
+    "unit": "DC 102 (Tool)",
+    "tags": "formula|tool"
+  },
+  {
+    "term": "Ohm's Law (Current Formula)",
+    "definition": "A derived formula stating that Current equals Voltage divided by Resistance (I = V $\\div$ R) [10, 17, 22]. This is used to calculate the electrical load to select proper circuit protection [23].",
+    "analogy": "Finding the flow rate when you know the pressure and the size of the restriction [17].",
+    "unit": "DC 102 (Formula)",
+    "tags": "formula|troubleshooting"
+  },
+  {
+    "term": "Ohm's Law (Resistance Formula)",
+    "definition": "A derived formula stating that Resistance equals Voltage divided by Current (R = V $\\div$ I) [14, 17, 22]. This is used to determine the resistance of components like light bulbs or heating elements [14, 20].",
+    "analogy": "Finding the size of the obstruction when you know the pressure and the flow rate [17].",
+    "unit": "DC 102 (Formula)",
+    "tags": "formula|troubleshooting"
+  },
+  {
+    "term": "Electrical Power (P)",
+    "definition": "The rate of doing work or consuming energy in a circuit, calculated primarily using P = V $\\times$ I [24-27]. Power calculations are critical for proper wire sizing and circuit breaker selection [2, 25, 28, 29].",
+    "analogy": "The volume or amount of work being produced, or the energy consumed by a device [24, 30, 31].",
+    "unit": "Watt (W)",
+    "tags": "DC 102|calculations|safety"
+  },
+  {
+    "term": "Watt's Law (Derived)",
+    "definition": "Alternative formulas derived from Ohm's Law and Power, such as P = I² $\\times$ R and P = V² $\\div$ R, useful when current or voltage measurements are difficult to obtain [25, 26, 32, 33].",
+    "analogy": "Alternative routes to calculate the work being done if you can't measure all the basic variables [32].",
+    "unit": "DC 102 (Formula)",
+    "tags": "formula|calculations"
+  },
+  {
+    "term": "Conductor",
+    "definition": "Materials, typically metals like copper or aluminum, that allow electricity to flow easily because they have many free valence electrons and low resistance [14, 15, 34, 35].",
+    "analogy": "A clear, wide highway for the smooth flow of electrical current [34].",
+    "unit": "DC 101 (Material)",
+    "tags": "fundamentals|materials"
+  },
+  {
+    "term": "Insulator",
+    "definition": "Materials, such as rubber or plastic, that block or highly resist the flow of electricity, used in avionics for wire jackets and safety barriers [14, 34, 36].",
+    "analogy": "A physical barrier or safety fence confining the electrical current to its intended path [34, 37].",
+    "unit": "DC 101 (Material)",
+    "tags": "fundamentals|materials"
+  },
+  {
+    "term": "Semiconductor",
+    "definition": "Materials, like silicon, with electrical properties between conductors and insulators, used in modern solid-state electronics like transistors and diodes where conductivity can be controlled [14, 34, 37, 38].",
+    "analogy": "The basis of all modern electronic components that can act as a controlled switch [34].",
+    "unit": "DC 101 (Material)",
+    "tags": "fundamentals|materials|devices"
+  },
+  {
+    "term": "Electron",
+    "definition": "Tiny negatively charged particles orbiting the atom's nucleus [39, 40]. The directed movement of valence electrons from atom to atom creates electrical current [41, 42].",
+    "analogy": "The moving charge carriers that make up electricity [41].",
+    "unit": "DC 101 (Physics)",
+    "tags": "atomic_theory"
+  },
+  {
+    "term": "Proton",
+    "definition": "Positively charged particle located within the nucleus of an atom [39, 40]. Protons contribute to the mass and stability of the atom [42].",
+    "analogy": "A fundamental positive charge at the core of matter [39].",
+    "unit": "DC 101 (Physics)",
+    "tags": "atomic_theory"
+  },
+  {
+    "term": "Series Circuit",
+    "definition": "A configuration where components are connected end-to-end in a single, unbroken path [2, 43-46]. The same current flows through all components [43, 44, 46-48].",
+    "analogy": "A single chain of components; one failure stops the entire circuit [43, 46, 49].",
+    "unit": "DC 103 (Circuit Type)",
+    "tags": "circuit_type"
+  },
+  {
+    "term": "Parallel Circuit",
+    "definition": "A configuration where components are connected across common voltage points, offering multiple independent current paths [2, 50-53]. The voltage is the same across all branches [53-56].",
+    "analogy": "Modern household wiring or aircraft distribution where turning off one device doesn't affect others [54, 57, 58].",
+    "unit": "DC 103 (Circuit Type)",
+    "tags": "circuit_type"
+  },
+  {
+    "term": "Complex Circuit",
+    "definition": "A combination of both series and parallel elements, common in avionics installations where safety and independent operation are required [2, 53-55].",
+    "analogy": "Wiring the power wire on multiple components in parallel, which then runs in series to a circuit breaker [54].",
+    "unit": "DC 103 (Circuit Type)",
+    "tags": "circuit_type"
+  },
+  {
+    "term": "Kirchhoff's Voltage Law (KVL)",
+    "definition": "States that the sum of all voltage drops around any closed loop in a circuit must equal the total supply voltage (or sum to zero) [2, 43, 59-61]. Essential for ensuring components receive correct voltage [62].",
+    "analogy": "The source voltage must be entirely consumed by the components in the loop [63].",
+    "unit": "DC 103 (Law)",
+    "tags": "law|series|troubleshooting"
+  },
+  {
+    "term": "Kirchhoff's Current Law (KCL)",
+    "definition": "States that the total current entering a junction must equal the total current leaving the junction [2, 54, 64-66]. This ensures current is properly distributed across all parallel branches [67].",
+    "analogy": "A rule ensuring no current is lost or created at a junction point where wires meet [67].",
+    "unit": "DC 103 (Law)",
+    "tags": "law|parallel|troubleshooting"
+  },
+  {
+    "term": "Series Resistance Formula",
+    "definition": "Total resistance in a series circuit is the sum of all individual resistances: R_total = R₁ + R₂ + R₃ + ... [43, 49, 51, 68]. Adding components increases the total resistance [49, 68].",
+    "analogy": "Total friction is the sum of every rough spot the current encounters in its single path [68].",
+    "unit": "DC 103 (Formula)",
+    "tags": "formula|series"
+  },
+  {
+    "term": "Parallel Resistance Formula",
+    "definition": "Total resistance is the reciprocal of the sum of the individual reciprocals: 1/R_total = 1/R₁ + 1/R₂ + ... [54, 55, 69, 70]. The total resistance is always less than the smallest individual resistor [54, 69, 71].",
+    "analogy": "Adding multiple paths makes it easier for the current to flow, reducing the overall resistance [69].",
+    "unit": "DC 103 (Formula)",
+    "tags": "formula|parallel"
+  },
+  {
+    "term": "Open Circuit",
+    "definition": "A fault caused by a break or disconnection in the current path, resulting in infinite resistance (O.L.) and zero current flow (0 Amps) [2, 72-74].",
+    "analogy": "A dammed river or a broken wire; the current stops completely [72, 75].",
+    "unit": "DC 103 (Fault)",
+    "tags": "fault|troubleshooting"
+  },
+  {
+    "term": "Short Circuit",
+    "definition": "A dangerous fault where current takes an unintended low-resistance path, causing excessive current flow that can trip circuit protection or cause fires [2, 73, 76, 77].",
+    "analogy": "Electrons taking the least resistive path, such as through a carelessly dropped metal wrench across battery terminals [76].",
+    "unit": "DC 103 (Fault)",
+    "tags": "fault|safety"
+  },
+  {
+    "term": "Voltage Drop",
+    "definition": "The reduction in voltage across a component in a circuit as energy is consumed, calculated using Ohm's Law (V = I $\\times$ R) [2, 47, 63]. High-resistance connections (corrosion) cause unwanted voltage drops [28, 78].",
+    "analogy": "The amount of pressure lost as water passes through a small pipe or filter [6, 62].",
+    "unit": "DC 103 (Concept)",
+    "tags": "troubleshooting"
+  },
+  {
+    "term": "Multimeter",
+    "definition": "A handheld test instrument essential for avionics technicians used to measure fundamental electrical quantities: voltage, current, and resistance [2, 59, 79].",
+    "analogy": "The primary diagnostic tool, allowing technicians to interpret electrical system health [59, 80].",
+    "unit": "DC 103 (Tool)",
+    "tags": "tool|measurement"
+  },
+  {
+    "term": "Measuring Voltage (Procedure)",
+    "definition": "Voltage is measured by connecting the multimeter probes *across* (in parallel with) the component or circuit being tested [2, 6, 7, 51]. This must be done while the circuit is powered ON [81].",
+    "analogy": "Measuring the pressure difference between the inlet and outlet of a device [7].",
+    "unit": "DC 103 (Procedure)",
+    "tags": "multimeter|procedure"
+  },
+  {
+    "term": "Measuring Current (Procedure)",
+    "definition": "Current is measured by inserting the multimeter *into* (in series with) the circuit, physically breaking the current path so the flow runs through the meter [2, 13, 51, 82, 83]. This must be done carefully to avoid blowing fuses [2, 84].",
+    "analogy": "Cutting a pipe and routing the entire water flow through a flow meter [83, 84].",
+    "unit": "DC 103 (Procedure)",
+    "tags": "multimeter|procedure"
+  },
+  {
+    "term": "Measuring Resistance (Procedure)",
+    "definition": "Resistance is measured by connecting the multimeter probes across the component, but the circuit power must be completely OFF to prevent damage to the meter and ensure accurate results [17, 51, 85].",
+    "analogy": "Checking the impedance of a wire or component when it is completely isolated [85].",
+    "unit": "DC 103 (Procedure)",
+    "tags": "multimeter|procedure"
+  },
+  {
+    "term": "Electrostatic Discharge (ESD)",
+    "definition": "The rapid transfer of static electrical charge built up on an object [2, 86]. This poses a serious hazard as it can damage sensitive avionics components like microprocessors [2, 76, 87].",
+    "analogy": "The invisible static shock that can 'fry' delicate circuits [88].",
+    "unit": "DC 101 (Safety)",
+    "tags": "safety|maintenance"
+  },
+  {
+    "term": "ESD Precautions",
+    "definition": "Safety procedures, such as using grounding straps and anti-static mats, designed to safely discharge built-up static electricity before handling sensitive electronics [2, 89].",
+    "analogy": "Grounding oneself to prevent static discharge from destroying microprocessors [89, 90].",
+    "unit": "DC 101 (Safety)",
+    "tags": "safety|maintenance"
+  },
+  {
+    "term": "Circuit Breaker",
+    "definition": "A resettable protective device that automatically opens a circuit when current exceeds a safe level. Unlike fuses, circuit breakers can be reset after tripping. Aircraft use both push-to-reset and pull-off types.",
+    "analogy": "A reusable safety guard that stops excessive current before it causes damage or fire.",
+    "unit": "DC 103 (Protection)",
+    "tags": "protection|safety|components"
+  },
+  {
+    "term": "Fuse",
+    "definition": "A one-time protective device containing a metal element that melts when current exceeds its rating, permanently opening the circuit. Must be replaced after blowing. Common in avionics and older aircraft.",
+    "analogy": "A sacrificial link that destroys itself to protect the circuit.",
+    "unit": "DC 103 (Protection)",
+    "tags": "protection|safety|components"
+  },
+  {
+    "term": "Bus Bar",
+    "definition": "A common electrical distribution point that receives power from a source (battery, generator) and distributes it to multiple circuits. Aircraft have main, essential, and avionics buses.",
+    "analogy": "A central hub or manifold where electrical power is distributed to various systems.",
+    "unit": "DC 103 (Distribution)",
+    "tags": "distribution|components"
+  },
+  {
+    "term": "Ground (Aircraft)",
+    "definition": "The aircraft structure (airframe) used as the common return path for electrical current, completing circuits back to the battery negative terminal. Also called 'chassis ground.'",
+    "analogy": "The metal airframe acts as one giant wire returning current to the battery.",
+    "unit": "DC 103 (Distribution)",
+    "tags": "distribution|fundamentals"
+  },
+  {
+    "term": "Relay",
+    "definition": "An electromagnetic switch that uses a small control current to switch a larger load current. Used to control high-current devices like landing lights and starter motors from cockpit switches.",
+    "analogy": "A small switch that controls a bigger switch - like using a light switch to turn on a crane.",
+    "unit": "DC 103 (Components)",
+    "tags": "components|control"
+  },
+  {
+    "term": "Wire Gauge (AWG)",
+    "definition": "American Wire Gauge - a standard for measuring wire diameter. Smaller numbers indicate larger wire. Proper gauge selection based on current and length prevents overheating. Common aircraft sizes: 22 AWG to 4 AWG.",
+    "analogy": "Like pipe sizes - smaller number means bigger pipe that can carry more water (current).",
+    "unit": "DC 103 (Wiring)",
+    "tags": "wiring|safety|maintenance"
+  },
+  {
+    "term": "Ampere-Hour (Ah)",
+    "definition": "A measure of battery capacity. A 35 Ah battery can theoretically deliver 35 amps for 1 hour, or 1 amp for 35 hours. Used to calculate available backup power during generator failure.",
+    "analogy": "The 'fuel tank' capacity of a battery - how much electrical energy it stores.",
+    "unit": "DC 101 (Batteries)",
+    "tags": "batteries|measurement"
+  },
+  {
+    "term": "Diode",
+    "definition": "A semiconductor device that allows current to flow in only one direction. Used in aircraft for reverse polarity protection and in alternator rectifiers to convert AC to DC.",
+    "analogy": "An electrical one-way valve or check valve.",
+    "unit": "DC 103 (Components)",
+    "tags": "components|devices"
+  },
+  {
+    "term": "Continuity Test",
+    "definition": "A resistance measurement to verify an unbroken path exists in a wire or component. A good reading is low/near-zero ohms; an open circuit shows 'OL' or infinite resistance.",
+    "analogy": "Checking if a pipe is clear by blowing through it - continuity means the path is clear.",
+    "unit": "DC 103 (Testing)",
+    "tags": "multimeter|troubleshooting|procedure"
+  },
+  {
+    "term": "Voltage Drop Test",
+    "definition": "A diagnostic technique where voltage is measured across connections and wires while current is flowing. Excessive voltage drop indicates high resistance (corrosion, loose connection).",
+    "analogy": "Checking for 'leaks' in the electrical pressure by measuring what's lost at each point.",
+    "unit": "DC 103 (Testing)",
+    "tags": "multimeter|troubleshooting|procedure"
+  },
+  {
+    "term": "Load",
+    "definition": "Any device that consumes electrical power in a circuit - lights, motors, avionics units, heaters. The load determines how much current the circuit draws.",
+    "analogy": "The 'work' being done by the electricity - where the energy is being used.",
+    "unit": "DC 101 (Fundamentals)",
+    "tags": "fundamentals|components"
+  }
+  ];
+
+  function uidFrom(str){
+    let h=0; for(let i=0;i<str.length;i++){ h=(h<<5)-h+str.charCodeAt(i); h|=0 }
+    return Math.abs(h).toString(36);
+  }
+  function normalizeTags(t){
+    if(Array.isArray(t)) return t.map(s=>String(s).trim()).filter(Boolean);
+    if(typeof t === 'string') return t.split(/[|,]/).map(s=>s.trim()).filter(Boolean);
+    return [];
+  }
+  const DATA = FIXED_CARDS.map(c=>({ ...c, id: uidFrom(c.term+'::'+c.definition), tags: normalizeTags(c.tags) }));
+
+  // ---------- Storage ----------
+  const LS_KEY = 'glossary.mastery';
+  function loadMap(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{} }catch{ return {} } }
+  function saveMap(m){ try{ localStorage.setItem(LS_KEY, JSON.stringify(m)) }catch{} }
+
+  // ---------- SM-2 ----------
+  const DAY = 24*60*60*1000;
+  function scheduleNext(state, rating){
+    const q = rating==='difficult'?2: rating==='medium'?4:5;
+    let { reps=0, ivl=0, ease=2.5 } = state||{};
+    const now = Date.now();
+    if(q < 3){ reps=0; ivl=1; }
+    else { if(reps===0) ivl=1; else if(reps===1) ivl=6; else ivl=Math.max(1, Math.round(ivl*ease)); reps+=1; }
+    ease = Math.max(1.3, ease + 0.1 - (5-q)*(0.08 + (5-q)*0.02));
+    const due = now + ivl*DAY;
+    return { ...state, rating, reps, ivl, ease, due, last: now };
+  }
+
+  // ---------- State ----------
+  const state = {
+    mastery: loadMap(),
+    deck: 'all',
+    query: '',
+    tags: new Set(),
+    idx: 0,
+    flipped: false
+  };
+
+  // ---------- Elements ----------
+  const $front = document.getElementById('front');
+  const $back = document.getElementById('back');
+  const $flip = document.getElementById('flip');
+  const $list = document.getElementById('list');
+  const $tags = document.getElementById('tags');
+  const $search = document.getElementById('search');
+  const $prev = document.getElementById('prev');
+  const $next = document.getElementById('next');
+  const $rateEasy = document.getElementById('rateEasy');
+  const $rateMedium = document.getElementById('rateMedium');
+  const $rateDifficult = document.getElementById('rateDifficult');
+  const $chips = Array.from(document.querySelectorAll('.deck-switch .chip'));
+  const $counts = {
+    easy: document.querySelector('[data-count="easy"]'),
+    medium: document.querySelector('[data-count="medium"]'),
+    difficult: document.querySelector('[data-count="difficult"]')
+  };
+
+  // ---------- Derived ----------
+  function filtered(){
+    const q = state.query.trim().toLowerCase();
+    const base = DATA;
+    const byQ = q ? base.filter(d => (d.term||'').toLowerCase().includes(q) || (d.definition||'').toLowerCase().includes(q) || (d.unit||'').toLowerCase().includes(q) || (d.tags||[]).some(t=>t.toLowerCase().includes(q))) : base;
+    const byTags = state.tags.size ? byQ.filter(d => (d.tags||[]).some(t=>state.tags.has(t))) : byQ;
+    const byDeck = state.deck==='all' ? byTags : byTags.filter(d => (state.mastery[d.id]?.rating||'medium') === state.deck);
+    return byDeck;
+  }
+
+  function computeTagIndex(){
+    const counts = {};
+    DATA.forEach(it => (it.tags||[]).forEach(t => { if(!t) return; counts[t]=(counts[t]||0)+1; }));
+    return Object.entries(counts).sort((a,b)=> b[1]-a[1] || String(a[0]).localeCompare(String(b[0])));
+  }
+
+  function computeCounts(){
+    const easy = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='easy').length;
+    const med  = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='medium').length;
+    const dif  = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='difficult').length;
+    $counts.easy.textContent = `(${easy})`;
+    $counts.medium.textContent = `(${med})`;
+    $counts.difficult.textContent = `(${dif})`;
+  }
+
+  // ---------- Render ----------
+  function renderCard(){
+    const items = filtered();
+    if(items.length===0){
+      $front.innerHTML = `<div class="empty">No terms match your search or selected tags.</div>`;
+      $back.innerHTML = '';
+      return;
+    }
+    if(state.idx >= items.length) state.idx = 0;
+    const cur = items[state.idx];
+    const rating = (state.mastery[cur.id]?.rating)||'medium';
+    $front.innerHTML = `
+      <div>
+        <div class="meta">Term</div>
+        <div class="term">${escapeHTML(cur.term)}</div>
+        <div class="unit">${escapeHTML(cur.unit||'')}</div>
+        <div style="margin-top:8px">${(cur.tags||[]).map(t=>`<span class="badge">${escapeHTML(t)}</span>`).join('')}</div>
+      </div>`;
+    $back.innerHTML = `
+      <div>
+        <div class="meta">Definition</div>
+        <div class="def">${escapeHTML(cur.definition)}</div>
+      </div>`;
+
+    setActive($rateEasy, rating==='easy');
+    setActive($rateMedium, rating==='medium');
+    setActive($rateDifficult, rating==='difficult');
+  }
+
+  function renderList(){
+    const items = filtered();
+    if(items.length===0){ $list.innerHTML = `<div class="empty">No terms match your search or selected tags.</div>`; return; }
+    $list.innerHTML = items.map(it=>{
+      const r = (state.mastery[it.id]?.rating)||'medium';
+      const color = r==='easy' ? 'background:var(--green);color:#fff' : r==='medium' ? 'background:var(--yellow);color:#fff' : 'background:var(--red);color:#fff';
+      return `<div class="list-item">
+        <div class="title">${escapeHTML(it.term)}</div>
+        <div class="line">${escapeHTML(it.definition)}</div>
+        <div class="line">${escapeHTML(it.unit||'')}${(it.tags||[]).length?' • ':''}${(it.tags||[]).map(escapeHTML).join(', ')}</div>
+        <div class="line"><span class="badge" style="${color}">${r[0].toUpperCase()+r.slice(1)}</span></div>
+      </div>`
+    }).join('');
+  }
+
+  function renderTags(){
+    const idx = computeTagIndex();
+    $tags.innerHTML = idx.slice(0,24).map(([tag,count])=>{
+      const active = state.tags.has(tag);
+      return `<button class="tag ${active?'active':''}" data-tag="${encodeURIComponent(tag)}">${escapeHTML(tag)} <span style="opacity:.7">(${count})</span></button>`;
+    }).join('') + (state.tags.size? ' <button class="tag" id="clearTags">Clear</button>': '');
+  }
+
+  function renderAll(){
+    computeCounts();
+    renderCard();
+    renderList();
+    renderTags();
+  }
+
+  // ---------- Utils ----------
+  function setActive(btn, on){
+    const classes = btn.className.split(' ').filter(Boolean);
+    const has = classes.includes('active');
+    if(on && !has) btn.className += ' active';
+    if(!on && has) btn.className = classes.filter(c=>c!=='active').join(' ');
+  }
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+  }
+
+  // ---------- Events ----------
+  $flip.addEventListener('click', ()=>{ state.flipped=!state.flipped; $flip.classList.toggle('is-flipped', state.flipped); });
+  $prev.addEventListener('click', ()=>{ const len=filtered().length||1; state.flipped=false; state.idx=(state.idx-1+len)%len; renderCard(); });
+  $next.addEventListener('click', ()=>{ const len=filtered().length||1; state.flipped=false; state.idx=(state.idx+1)%len; renderCard(); });
+
+  $rateEasy.addEventListener('click', ()=>rate('easy'));
+  $rateMedium.addEventListener('click', ()=>rate('medium'));
+  $rateDifficult.addEventListener('click', ()=>rate('difficult'));
+
+  $chips.forEach(ch=> ch.addEventListener('click', ()=>{
+    $chips.forEach(b=>b.classList.remove('active'));
+    ch.classList.add('active');
+    state.deck = ch.dataset.deck;
+    state.idx = 0; state.flipped=false; $flip.classList.remove('is-flipped');
+    renderAll();
+  }));
+
+  $tags.addEventListener('click', (e)=>{
+    const t = e.target.closest('[data-tag]');
+    if(t){
+      const tag = decodeURIComponent(t.getAttribute('data-tag'));
+      if(state.tags.has(tag)) state.tags.delete(tag); else state.tags.add(tag);
+      state.idx=0; state.flipped=false; $flip.classList.remove('is-flipped');
+      renderAll();
+    }
+    if(e.target && e.target.id==='clearTags'){ state.tags.clear(); renderAll(); }
+  });
+
+  $search.addEventListener('input', ()=>{ state.query = $search.value; state.idx=0; renderAll(); });
+
+  window.addEventListener('keydown', (e)=>{
+    const tag = (e.target && e.target.tagName||'').toLowerCase();
+    if(tag==='input' || tag==='textarea') return;
+    if(e.code==='ArrowLeft'){ e.preventDefault(); $prev.click(); }
+    if(e.code==='ArrowRight'){ e.preventDefault(); $next.click(); }
+    if(e.code==='Space'){ e.preventDefault(); $flip.click(); }
+  });
+
+  function rate(level){
+    const items = filtered(); if(items.length===0) return;
+    const cur = items[state.idx];
+    const st = state.mastery[cur.id] || { rating:'medium', seen:0, correct:0, last:0, reps:0, ivl:0, ease:2.5, due:0 };
+    const next = scheduleNext(st, level);
+    state.mastery[cur.id] = next; saveMap(state.mastery);
+    computeCounts();
+    $next.click();
+  }
+
+  // ---------- Init ----------
+  DATA.forEach(it=>{ if(!state.mastery[it.id]) state.mastery[it.id] = { rating:'medium', seen:0, correct:0, last:0, reps:0, ivl:0, ease:2.5, due:0 }; });
+  saveMap(state.mastery);
+  renderAll();
+
+  // ---------- Finish Session & Report to Parent ----------
+  function finishSession() {
+    // Calculate score based on mastery ratings
+    const total = DATA.length;
+    const easy = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='easy').length;
+    const medium = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='medium').length;
+    const difficult = DATA.filter(d => (state.mastery[d.id]?.rating||'medium')==='difficult').length;
+
+    // Score: easy cards = 100%, medium = 50%, difficult = 0%
+    const score = Math.round((easy + medium * 0.5) / total * 100);
+
+    // Try to send to parent page
+    try {
+      if (window.parent && window.parent.completeModule) {
+        console.log('✅ Sending flashcards score to parent page:', score + '%');
+        window.parent.completeModule('flashcards', score);
+
+        alert(`📚 Study Session Complete!\n\nYour Progress:\n✅ Easy: ${easy} cards\n⚠️ Medium: ${medium} cards\n❌ Difficult: ${difficult} cards\n\n📊 Score: ${score}%\n\nKeep studying to improve!`);
+
+        // Return to home view after 1 second
+        setTimeout(() => {
+          if (window.parent && window.parent.showTab) {
+            window.parent.showTab('home');
+          }
+        }, 1000);
+      } else {
+        console.log('⚠️ Parent page not available - running standalone');
+        alert(`📚 Study Session Complete!\n\nYour Progress:\n✅ Easy: ${easy} cards\n⚠️ Medium: ${medium} cards\n❌ Difficult: ${difficult} cards\n\n📊 Score: ${score}%\n\n(Gamification not available in standalone mode)`);
+      }
+    } catch (e) {
+      console.error('Error communicating with parent page:', e);
+      alert(`📚 Study Session Complete!\n\nScore: ${score}%\nEasy: ${easy}, Medium: ${medium}, Difficult: ${difficult}`);
+    }
+  }
+
+  // Attach finish session button handler
+  const $finishBtn = document.getElementById('finishSession');
+  if ($finishBtn) {
+    $finishBtn.addEventListener('click', finishSession);
+  }
+
+  // ---------- Lightweight tests (no special chars) ----------
+  ;(function runTests(){
+    try{
+      if(!(Array.isArray(DATA) && DATA.length>0)) console.error('Test failed: dataset missing');
+      const total = DATA.length;
+      const counts = ['easy','medium','difficult'].map(k=> DATA.filter(d => (state.mastery[d.id]?.rating||'medium')===k).length).reduce((a,b)=>a+b,0);
+      if(!(counts<=total)) console.error('Test failed: deck counts');
+    }catch(e){ console.error('Self-test error', e); }
+  })();
+})();
+</script>
+
+<!-- LMS Progress Tracking -->
+<script>
+// CAET LMS Integration
+(function() {
+    // IMPORTANT: Update this for each lesson
+    const LESSON_NUMBER = 1; // Change to 1, 2, 3, or 4 based on lesson
+    const MODULE_ID = 'electricity'; // or 'maintenance', 'systems' based on module
+    const LESSON_XP = 100; // Update based on lesson: L1=100, L2=120, L3=100, L4=80
+
+    // Initialize tracking
+    let startTime = Date.now();
+    let progress = 0;
+    const storageKey = 'caet_lms_' + MODULE_ID;
+
+    // Track page scroll for progress
+    window.addEventListener('scroll', function() {
+        const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+        progress = Math.min(100, Math.round(scrollPercent));
+
+        // Save progress every 20%
+        if (progress % 20 === 0) {
+            saveProgress();
+        }
+    });
+
+    // Save progress function
+    function saveProgress() {
+        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        if (!lmsState.lessons) lmsState.lessons = {};
+        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
+
+        lmsState.lessons[LESSON_NUMBER].progress = progress;
+        lmsState.lessons[LESSON_NUMBER].lastAccessed = new Date().toISOString();
+
+        localStorage.setItem(storageKey, JSON.stringify(lmsState));
+    }
+
+    // Complete lesson function
+    window.completeLesson = function() {
+        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+        // Initialize structure if needed
+        if (!lmsState.lessons) lmsState.lessons = {};
+        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
+
+        // Mark as complete
+        lmsState.lessons[LESSON_NUMBER].completed = true;
+        lmsState.lessons[LESSON_NUMBER].progress = 100;
+        lmsState.lessons[LESSON_NUMBER].completedAt = new Date().toISOString();
+
+        // Award XP
+        lmsState.totalXP = (lmsState.totalXP || 0) + LESSON_XP;
+
+        // Check for badge unlocks
+        if (LESSON_NUMBER === 1) lmsState.badges = {...(lmsState.badges || {}), 1: true};
+        if (LESSON_NUMBER === 2) lmsState.badges = {...(lmsState.badges || {}), 2: true};
+        if (LESSON_NUMBER === 4) lmsState.badges = {...(lmsState.badges || {}), 3: true};
+
+        // Check module completion
+        const allComplete = [1,2,3,4].every(num =>
+            lmsState.lessons[num] && lmsState.lessons[num].completed
+        );
+        if (allComplete) lmsState.badges = {...(lmsState.badges || {}), 4: true};
+
+        localStorage.setItem(storageKey, JSON.stringify(lmsState));
+
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #00ff41, #00cc33);
+            color: #000;
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.8);
+            animation: popIn 0.5s ease;
+        `;
+        successDiv.innerHTML = `
+            <div>✓ LESSON COMPLETE!</div>
+            <div style="font-size: 1rem; margin-top: 0.5rem;">+${LESSON_XP} XP EARNED</div>
+        `;
+        document.body.appendChild(successDiv);
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes popIn {
+                0% { transform: translate(-50%, -50%) scale(0) rotate(180deg); opacity: 0; }
+                50% { transform: translate(-50%, -50%) scale(1.2) rotate(0); }
+                100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Redirect to dashboard after delay
+        setTimeout(() => {
+            window.location.href = '/caet-dashboard?completed=' + LESSON_NUMBER;
+        }, 2000);
+    }
+
+    // Add completion button if it doesn't exist
+    window.addEventListener('load', function() {
+        // Check if button already exists
+        if (!document.getElementById('lms-complete-btn')) {
+            // Find the best place to add button (end of content or existing button container)
+            const contentEnd = document.querySelector('.lesson-content, .content, main, body');
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                z-index: 9999;
+            `;
+
+            buttonContainer.innerHTML = `
+                <button id="lms-complete-btn" onclick="completeLesson()" style="
+                    background: linear-gradient(45deg, #00ff41, #00cc33);
+                    color: #000;
+                    border: none;
+                    padding: 1rem 2rem;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.4);
+                    transition: all 0.3s ease;
+                ">
+                    Complete Lesson ✓
+                </button>
+                <a href="/caet-dashboard" style="
+                    display: block;
+                    margin-top: 10px;
+                    text-align: center;
+                    color: #ffcc00;
+                    text-decoration: none;
+                    font-family: monospace;
+                ">
+                    ← Back to Dashboard
+                </a>
+            `;
+
+            document.body.appendChild(buttonContainer);
+
+            // Add hover effect
+            const btn = document.getElementById('lms-complete-btn');
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'scale(1.05)';
+                btn.style.boxShadow = '0 6px 25px rgba(0, 255, 65, 0.6)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+                btn.style.boxShadow = '0 4px 15px rgba(0, 255, 65, 0.4)';
+            });
+        }
+    });
+
+    // Save progress on page unload
+    window.addEventListener('beforeunload', saveProgress);
+})();
+</script>
+</body>
+</html>

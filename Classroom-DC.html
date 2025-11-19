@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+  <script src="progress-tracker.js"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentals of Direct Current - Classroom Lesson</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-violet: #8b5cf6;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .lesson-header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border-bottom: 3px solid var(--accent-cyan);
+            margin-bottom: 2rem;
+        }
+
+        .lesson-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .lesson-header .part145-badge {
+            display: inline-block;
+            background: var(--accent-amber);
+            color: #000;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        /* Learning Objectives */
+        .objectives-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .objectives-section h2 {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .objectives-list {
+            list-style: none;
+        }
+
+        .objectives-list li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .objectives-list li:last-child {
+            border-bottom: none;
+        }
+
+        .objectives-list li::before {
+            content: "\\2713";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        /* Section Styling */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .section h2 {
+            color: var(--accent-cyan);
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-cyan);
+        }
+
+        .section h3 {
+            color: var(--accent-amber);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* Safety Warning Boxes */
+        .safety-warning {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+            border: 2px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .safety-warning h4 {
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .safety-warning ul {
+            margin-left: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .safety-warning li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.05));
+            border-left: 4px solid var(--accent-cyan);
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box.aircraft-specific {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+            border-left-color: var(--accent-amber);
+        }
+
+        .info-box strong {
+            color: var(--accent-cyan);
+        }
+
+        .info-box.aircraft-specific strong {
+            color: var(--accent-amber);
+        }
+
+        /* Formula Boxes */
+        .formula-box {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-violet);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .formula {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--accent-violet);
+            margin-bottom: 0.5rem;
+        }
+
+        .formula-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: var(--accent-cyan);
+            color: #000;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        /* Interactive Elements */
+        .interactive-question {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .interactive-question h4 {
+            color: var(--accent-amber);
+            margin-bottom: 1rem;
+        }
+
+        .question-options {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .question-option {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .question-option:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .question-option.correct {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .question-option.incorrect {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Practical Application Boxes */
+        .practical-box {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05));
+            border: 2px solid var(--accent-violet);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .practical-box h4 {
+            color: var(--accent-violet);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Troubleshooting Scenario */
+        .troubleshooting-scenario {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-amber);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .scenario-header {
+            color: var(--accent-amber);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .scenario-symptom {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-solution {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+
+        /* Code/Command styling */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-card);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent-cyan);
+            font-size: 0.9em;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .lesson-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .formula {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="lesson-header">
+        <h1>Fundamentals of Direct Current</h1>
+        <p class="subtitle">Avionics Electronics Training Module</p>
+        <span class="part145-badge">FAR Part 145 Compliant</span>
+    </header>
+
+    <div class="container">
+        <!-- Learning Objectives -->
+        <section class="objectives-section">
+            <h2>Learning Objectives</h2>
+            <ul class="objectives-list">
+                <li>Apply Ohm's Law (V=IR) to calculate voltage, current, and resistance in aircraft electrical circuits</li>
+                <li>Analyze series and parallel circuit configurations and calculate total resistance</li>
+                <li>Calculate electrical power using Watt's Law (P=VI) and derived formulas</li>
+                <li>Operate the Fluke 87V multimeter to measure voltage, current, and resistance safely</li>
+                <li>Identify and troubleshoot common DC faults: opens, shorts, and high-resistance connections</li>
+                <li>Apply Kirchhoff's Voltage Law (KVL) and Current Law (KCL) to circuit analysis</li>
+                <li>Work safely with 14V and 28V aircraft DC electrical systems</li>
+            </ul>
+        </section>
+
+        <!-- Section 1: Introduction to DC -->
+        <section class="section">
+            <h2>1. Introduction to Direct Current</h2>
+
+            <p>Direct Current (DC) is the foundation of aircraft electrical systems. Unlike Alternating Current (AC), DC flows in one direction only - from the negative terminal of a power source, through the circuit, and back to the positive terminal. Understanding DC is essential for every avionics technician.</p>
+
+            <div class="info-box aircraft-specific">
+                <strong>Aircraft DC Systems:</strong> Most general aviation and turbine aircraft use either <strong>14V DC</strong> (single 12V battery systems) or <strong>28V DC</strong> (dual 12V batteries in series or 24V battery systems). These voltages power navigation lights, avionics, fuel pumps, and essential flight instruments.
+            </div>
+
+            <h3>The Three Fundamental Quantities</h3>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Quantity</th>
+                        <th>Symbol</th>
+                        <th>Unit</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Voltage</strong></td>
+                        <td>V or E</td>
+                        <td>Volts (V)</td>
+                        <td>Electrical pressure that pushes electrons through a circuit</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current</strong></td>
+                        <td>I</td>
+                        <td>Amperes (A)</td>
+                        <td>Rate of electron flow through a conductor</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Resistance</strong></td>
+                        <td>R</td>
+                        <td>Ohms (Ω)</td>
+                        <td>Opposition to current flow</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p><strong>Water Analogy:</strong> Think of voltage as water pressure, current as the flow rate (gallons per minute), and resistance as a restriction in the pipe. Higher pressure pushes more water through; a larger restriction reduces flow.</p>
+        </section>
+
+        <!-- Section 2: Ohm's Law -->
+        <section class="section">
+            <h2>2. Ohm's Law - The Foundation</h2>
+
+            <p>Ohm's Law is the most fundamental relationship in electrical theory and your most valuable troubleshooting tool. It mathematically relates voltage, current, and resistance.</p>
+
+            <div class="formula-box">
+                <div class="formula">V = I × R</div>
+                <div class="formula-description">Voltage (Volts) = Current (Amps) × Resistance (Ohms)</div>
+            </div>
+
+            <h3>Derived Formulas</h3>
+            <p>Rearranging Ohm's Law gives us three forms:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>To Find</th>
+                        <th>Formula</th>
+                        <th>Use When</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Voltage (V)</td>
+                        <td><code>V = I × R</code></td>
+                        <td>You know current and resistance</td>
+                    </tr>
+                    <tr>
+                        <td>Current (I)</td>
+                        <td><code>I = V / R</code></td>
+                        <td>You know voltage and resistance</td>
+                    </tr>
+                    <tr>
+                        <td>Resistance (R)</td>
+                        <td><code>R = V / I</code></td>
+                        <td>You know voltage and current</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="practical-box">
+                <h4>Practical Example - Aircraft Landing Light</h4>
+                <p><strong>Problem:</strong> A 28V aircraft landing light draws 10 amps. What is the bulb's resistance?</p>
+                <p><strong>Solution:</strong> R = V / I = 28V / 10A = <strong>2.8 Ohms</strong></p>
+                <p><strong>Application:</strong> Knowing this resistance helps you verify bulb condition with an ohmmeter when troubleshooting a light that won't illuminate.</p>
+            </div>
+
+            <div class="interactive-question" data-correct="2">
+                <h4>Knowledge Check</h4>
+                <p>A 28V circuit has a total resistance of 7 ohms. How much current flows?</p>
+                <div class="question-options">
+                    <div class="question-option" data-value="1">A) 196 Amps</div>
+                    <div class="question-option" data-value="2">B) 4 Amps</div>
+                    <div class="question-option" data-value="3">C) 0.25 Amps</div>
+                    <div class="question-option" data-value="4">D) 35 Amps</div>
+                </div>
+                <div class="feedback correct">Correct! Using I = V/R: 28V / 7Ω = 4 Amps</div>
+                <div class="feedback incorrect">Incorrect. Use I = V/R: 28V / 7Ω = 4 Amps</div>
+            </div>
+        </section>
+
+        <!-- Section 3: Series Circuits -->
+        <section class="section">
+            <h2>3. Series Circuits</h2>
+
+            <p>In a series circuit, components are connected end-to-end in a single path. Current has only one route to follow, so the same current flows through every component.</p>
+
+            <h3>Series Circuit Rules</h3>
+            <ul>
+                <li><strong>Current:</strong> Same through all components (I<sub>T</sub> = I<sub>1</sub> = I<sub>2</sub> = I<sub>3</sub>)</li>
+                <li><strong>Voltage:</strong> Divides across components (V<sub>T</sub> = V<sub>1</sub> + V<sub>2</sub> + V<sub>3</sub>)</li>
+                <li><strong>Resistance:</strong> Adds up (R<sub>T</sub> = R<sub>1</sub> + R<sub>2</sub> + R<sub>3</sub>)</li>
+            </ul>
+
+            <div class="formula-box">
+                <div class="formula">R<sub>T</sub> = R<sub>1</sub> + R<sub>2</sub> + R<sub>3</sub> + ...</div>
+                <div class="formula-description">Total Series Resistance = Sum of All Individual Resistances</div>
+            </div>
+
+            <div class="info-box">
+                <strong>Kirchhoff's Voltage Law (KVL):</strong> The sum of all voltage drops around any closed loop equals the source voltage. This is fundamental to troubleshooting - if you're missing voltage somewhere, you have an open circuit.
+            </div>
+
+            <div class="practical-box">
+                <h4>Practical Example - Voltage Divider</h4>
+                <p><strong>Problem:</strong> A 28V circuit has three resistors in series: 4Ω, 6Ω, and 4Ω. Calculate the voltage drop across the 6Ω resistor.</p>
+                <p><strong>Solution:</strong></p>
+                <ol>
+                    <li>Total Resistance: R<sub>T</sub> = 4 + 6 + 4 = 14Ω</li>
+                    <li>Current: I = V/R = 28V / 14Ω = 2A</li>
+                    <li>Voltage across 6Ω: V = I × R = 2A × 6Ω = <strong>12V</strong></li>
+                </ol>
+            </div>
+
+            <div class="safety-warning">
+                <h4>Critical Fault: Open Circuit in Series</h4>
+                <ul>
+                    <li>If ANY component opens (breaks) in a series circuit, ALL current stops</li>
+                    <li>This is why older Christmas lights went completely dark when one bulb burned out</li>
+                    <li>In aircraft, a broken wire in a series circuit disables the entire circuit</li>
+                    <li><strong>Troubleshooting:</strong> Check for continuity through each component and wire segment</li>
+                </ul>
+            </div>
+
+            <div class="interactive-question" data-correct="3">
+                <h4>Knowledge Check</h4>
+                <p>Three resistors (10Ω, 20Ω, 30Ω) are connected in series. What is the total resistance?</p>
+                <div class="question-options">
+                    <div class="question-option" data-value="1">A) 20 Ohms</div>
+                    <div class="question-option" data-value="2">B) 5.45 Ohms</div>
+                    <div class="question-option" data-value="3">C) 60 Ohms</div>
+                    <div class="question-option" data-value="4">D) 6000 Ohms</div>
+                </div>
+                <div class="feedback correct">Correct! R<sub>T</sub> = 10 + 20 + 30 = 60Ω</div>
+                <div class="feedback incorrect">Incorrect. In series, resistances add: R<sub>T</sub> = 10 + 20 + 30 = 60Ω</div>
+            </div>
+        </section>
+
+        <!-- Section 4: Parallel Circuits -->
+        <section class="section">
+            <h2>4. Parallel Circuits</h2>
+
+            <p>In a parallel circuit, components are connected across common points, creating multiple paths for current. This is how most aircraft electrical systems are wired - so one failed component doesn't disable everything else.</p>
+
+            <h3>Parallel Circuit Rules</h3>
+            <ul>
+                <li><strong>Voltage:</strong> Same across all branches (V<sub>T</sub> = V<sub>1</sub> = V<sub>2</sub> = V<sub>3</sub>)</li>
+                <li><strong>Current:</strong> Divides among branches (I<sub>T</sub> = I<sub>1</sub> + I<sub>2</sub> + I<sub>3</sub>)</li>
+                <li><strong>Resistance:</strong> Total is LESS than smallest branch</li>
+            </ul>
+
+            <div class="formula-box">
+                <div class="formula">1/R<sub>T</sub> = 1/R<sub>1</sub> + 1/R<sub>2</sub> + 1/R<sub>3</sub></div>
+                <div class="formula-description">Reciprocal Formula for Parallel Resistance</div>
+            </div>
+
+            <p><strong>Shortcut for Two Resistors:</strong></p>
+            <div class="formula-box">
+                <div class="formula">R<sub>T</sub> = (R<sub>1</sub> × R<sub>2</sub>) / (R<sub>1</sub> + R<sub>2</sub>)</div>
+                <div class="formula-description">Product Over Sum - Works for exactly two resistors</div>
+            </div>
+
+            <div class="info-box">
+                <strong>Kirchhoff's Current Law (KCL):</strong> The total current entering a junction equals the total current leaving it. Current doesn't "disappear" - it splits among parallel branches proportionally to their conductance.
+            </div>
+
+            <div class="practical-box">
+                <h4>Practical Example - Aircraft Bus Loading</h4>
+                <p><strong>Problem:</strong> Three avionics units are connected in parallel to a 28V bus. Unit A draws 2A, Unit B draws 3A, Unit C draws 5A. What is the total current from the bus?</p>
+                <p><strong>Solution:</strong> I<sub>T</sub> = 2A + 3A + 5A = <strong>10A</strong></p>
+                <p><strong>Application:</strong> This determines circuit breaker size. A 10A circuit breaker would barely handle this load; a 15A breaker provides margin for inrush current.</p>
+            </div>
+
+            <div class="troubleshooting-scenario">
+                <div class="scenario-header">Troubleshooting Scenario: Parallel Circuit Short</div>
+                <div class="scenario-symptom">
+                    <strong>Symptom:</strong> Circuit breaker trips immediately when master switch is turned on. Three navigation lights are on this circuit.
+                </div>
+                <div class="scenario-solution">
+                    <strong>Analysis:</strong> A short in ANY parallel branch draws excessive current, tripping the breaker. Since voltage is the same across all branches, a short (near-zero resistance) causes extremely high current in that branch.<br><br>
+                    <strong>Procedure:</strong> Disconnect each light one at a time and reset breaker. When breaker holds, you've found the shorted branch. Check that bulb, socket, and wiring for short to ground.
+                </div>
+            </div>
+
+            <div class="interactive-question" data-correct="1">
+                <h4>Knowledge Check</h4>
+                <p>Two 10Ω resistors are connected in parallel. What is the total resistance?</p>
+                <div class="question-options">
+                    <div class="question-option" data-value="1">A) 5 Ohms</div>
+                    <div class="question-option" data-value="2">B) 20 Ohms</div>
+                    <div class="question-option" data-value="3">C) 10 Ohms</div>
+                    <div class="question-option" data-value="4">D) 100 Ohms</div>
+                </div>
+                <div class="feedback correct">Correct! R<sub>T</sub> = (10 × 10)/(10 + 10) = 100/20 = 5Ω</div>
+                <div class="feedback incorrect">Incorrect. Use product over sum: (10 × 10)/(10 + 10) = 5Ω</div>
+            </div>
+        </section>
+
+        <!-- Section 5: Power Calculations -->
+        <section class="section">
+            <h2>5. Electrical Power (Watt's Law)</h2>
+
+            <p>Power is the rate at which electrical energy is converted to another form (heat, light, motion). Understanding power is critical for proper wire sizing, circuit protection, and preventing thermal damage.</p>
+
+            <div class="formula-box">
+                <div class="formula">P = V × I</div>
+                <div class="formula-description">Power (Watts) = Voltage (Volts) × Current (Amps)</div>
+            </div>
+
+            <h3>Derived Power Formulas</h3>
+            <p>By substituting Ohm's Law, we get additional useful formulas:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Formula</th>
+                        <th>Use When You Know</th>
+                        <th>Example Application</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>P = V × I</code></td>
+                        <td>Voltage and Current</td>
+                        <td>Reading bus voltage and ammeter</td>
+                    </tr>
+                    <tr>
+                        <td><code>P = I² × R</code></td>
+                        <td>Current and Resistance</td>
+                        <td>Wire heating calculations</td>
+                    </tr>
+                    <tr>
+                        <td><code>P = V² / R</code></td>
+                        <td>Voltage and Resistance</td>
+                        <td>Load power with known resistance</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="practical-box">
+                <h4>Practical Example - Circuit Breaker Selection</h4>
+                <p><strong>Problem:</strong> A landing light is rated at 250 watts on a 28V system. What size circuit breaker is needed?</p>
+                <p><strong>Solution:</strong></p>
+                <ol>
+                    <li>I = P / V = 250W / 28V = 8.93A</li>
+                    <li>Add 25% safety margin: 8.93 × 1.25 = 11.16A</li>
+                    <li>Select next standard size: <strong>15A circuit breaker</strong></li>
+                </ol>
+            </div>
+
+            <div class="safety-warning">
+                <h4>Power Dissipation and Heat</h4>
+                <ul>
+                    <li>Resistors convert electrical energy to heat (P = I²R)</li>
+                    <li>Undersized wiring causes excessive heating and potential fire</li>
+                    <li>High-resistance connections (corrosion) cause localized heating</li>
+                    <li><strong>Always use properly rated components</strong> - resistor wattage ratings exist for safety</li>
+                </ul>
+            </div>
+
+            <div class="interactive-question" data-correct="2">
+                <h4>Knowledge Check</h4>
+                <p>A 28V circuit draws 5 amps. How much power is consumed?</p>
+                <div class="question-options">
+                    <div class="question-option" data-value="1">A) 5.6 Watts</div>
+                    <div class="question-option" data-value="2">B) 140 Watts</div>
+                    <div class="question-option" data-value="3">C) 33 Watts</div>
+                    <div class="question-option" data-value="4">D) 0.18 Watts</div>
+                </div>
+                <div class="feedback correct">Correct! P = V × I = 28V × 5A = 140W</div>
+                <div class="feedback incorrect">Incorrect. P = V × I = 28V × 5A = 140W</div>
+            </div>
+        </section>
+
+        <!-- Section 6: Multimeter Operation -->
+        <section class="section">
+            <h2>6. Multimeter Operation (Fluke 87V)</h2>
+
+            <p>The digital multimeter (DMM) is your primary diagnostic tool. The Fluke 87V is an industry-standard meter used throughout aviation maintenance. Proper use prevents damage to equipment and ensures accurate measurements.</p>
+
+            <h3>Measuring Voltage (VDC)</h3>
+            <ul>
+                <li>Set meter to VDC (DC Volts)</li>
+                <li>Connect probes <strong>IN PARALLEL</strong> (across the component)</li>
+                <li>Red probe to more positive point, black to more negative</li>
+                <li>Circuit power must be <strong>ON</strong></li>
+            </ul>
+
+            <div class="info-box">
+                <strong>Voltage Measurement Tip:</strong> When troubleshooting, measure voltage at multiple points to locate where voltage is lost. Good voltage at the breaker but zero at the component indicates an open between those points.
+            </div>
+
+            <h3>Measuring Current (Amps)</h3>
+            <ul>
+                <li>Set meter to A (Amps) - use 10A jack for high current</li>
+                <li>Connect meter <strong>IN SERIES</strong> (break circuit and insert meter)</li>
+                <li>All current must flow through the meter</li>
+                <li>Use clamp meter for non-invasive measurement when possible</li>
+            </ul>
+
+            <div class="safety-warning">
+                <h4>Current Measurement Safety</h4>
+                <ul>
+                    <li><strong>NEVER</strong> connect ammeter in parallel - you will create a short circuit</li>
+                    <li>Ensure meter is rated for expected current (check fuse rating)</li>
+                    <li>Start with highest range if current is unknown</li>
+                    <li>Blown meter fuse is the #1 cause of "dead" multimeters</li>
+                </ul>
+            </div>
+
+            <h3>Measuring Resistance (Ohms)</h3>
+            <ul>
+                <li>Set meter to Ω (Ohms)</li>
+                <li>Disconnect power to circuit - <strong>POWER MUST BE OFF</strong></li>
+                <li>Isolate component from circuit to avoid parallel paths</li>
+                <li>Connect probes across component</li>
+            </ul>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reading</th>
+                        <th>Indication</th>
+                        <th>Common Causes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0 Ω or very low</td>
+                        <td>Short circuit / Good conductor</td>
+                        <td>Wire continuity OK, or unwanted short</td>
+                    </tr>
+                    <tr>
+                        <td>Expected value</td>
+                        <td>Component within spec</td>
+                        <td>Resistor, bulb, motor windings normal</td>
+                    </tr>
+                    <tr>
+                        <td>OL (Over Limit)</td>
+                        <td>Open circuit / Infinite resistance</td>
+                        <td>Broken wire, blown fuse, burned component</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="practical-box">
+                <h4>Fluke 87V Specific Features</h4>
+                <ul>
+                    <li><strong>True RMS:</strong> Accurate readings on non-sinusoidal waveforms</li>
+                    <li><strong>Min/Max/Avg:</strong> Capture transient readings</li>
+                    <li><strong>Relative Mode:</strong> Zero out lead resistance for precision measurements</li>
+                    <li><strong>Low-Z Mode:</strong> Prevents ghost voltages on disconnected circuits</li>
+                    <li><strong>CAT III 1000V / CAT IV 600V:</strong> Safety rated for aircraft systems</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 7: Common Faults -->
+        <section class="section">
+            <h2>7. Common DC Faults and Troubleshooting</h2>
+
+            <p>Understanding fault types and their electrical signatures is essential for efficient troubleshooting. Each fault type produces characteristic symptoms that guide your diagnosis.</p>
+
+            <h3>Open Circuit</h3>
+            <p>A break in the current path that stops all current flow.</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Characteristic</th>
+                        <th>Measurement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Resistance across open</td>
+                        <td>OL (Infinite)</td>
+                    </tr>
+                    <tr>
+                        <td>Current through circuit</td>
+                        <td>0 Amps</td>
+                    </tr>
+                    <tr>
+                        <td>Voltage across open</td>
+                        <td>Full source voltage</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="troubleshooting-scenario">
+                <div class="scenario-header">Scenario: Navigation Light Won't Illuminate</div>
+                <div class="scenario-symptom">
+                    <strong>Symptom:</strong> Right nav light is dark. Left nav and tail work fine. Circuit breaker not tripped.
+                </div>
+                <div class="scenario-solution">
+                    <strong>Troubleshooting Steps:</strong>
+                    <ol>
+                        <li>Check bulb - most common failure (remove and test with ohmmeter)</li>
+                        <li>Measure voltage at light socket - should be 28V</li>
+                        <li>If 0V at socket, trace wire back checking voltage until you find where it's lost</li>
+                        <li>Check for corroded connectors or broken wire in wing root area</li>
+                    </ol>
+                </div>
+            </div>
+
+            <h3>Short Circuit</h3>
+            <p>An unintended low-resistance path that allows excessive current flow.</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Characteristic</th>
+                        <th>Measurement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Resistance of short</td>
+                        <td>Near 0Ω</td>
+                    </tr>
+                    <tr>
+                        <td>Current through short</td>
+                        <td>Very high (limited by source)</td>
+                    </tr>
+                    <tr>
+                        <td>Circuit breaker</td>
+                        <td>Trips immediately or repeatedly</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="safety-warning">
+                <h4>Short Circuit Dangers</h4>
+                <ul>
+                    <li>Can cause immediate fire if circuit protection fails</li>
+                    <li>Damages wiring insulation through overheating</li>
+                    <li>May damage connected equipment</li>
+                    <li><strong>Never bypass circuit protection</strong> to "test" a tripping breaker</li>
+                </ul>
+            </div>
+
+            <h3>High-Resistance Connection</h3>
+            <p>The most insidious fault - often intermittent and hard to find.</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Characteristic</th>
+                        <th>Symptom</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Voltage drop across connection</td>
+                        <td>Higher than normal (should be near 0V)</td>
+                    </tr>
+                    <tr>
+                        <td>Equipment performance</td>
+                        <td>Dim lights, slow motors, intermittent operation</td>
+                    </tr>
+                    <tr>
+                        <td>Connection temperature</td>
+                        <td>Warm or hot to touch</td>
+                    </tr>
+                    <tr>
+                        <td>Visual inspection</td>
+                        <td>Corrosion, discoloration, melted plastic</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="practical-box">
+                <h4>Voltage Drop Testing</h4>
+                <p>The best way to find high-resistance connections:</p>
+                <ol>
+                    <li>Circuit must be powered and under load</li>
+                    <li>Measure voltage drop across each connection point</li>
+                    <li>A good connection should show less than 0.1V drop</li>
+                    <li>Higher drops indicate resistance - clean or replace connection</li>
+                </ol>
+                <p><strong>Ground Circuit:</strong> Measure voltage from component ground terminal to aircraft structure. Should be near 0V. More than 0.5V indicates poor ground.</p>
+            </div>
+
+            <div class="troubleshooting-scenario">
+                <div class="scenario-header">Scenario: Dim Landing Light</div>
+                <div class="scenario-symptom">
+                    <strong>Symptom:</strong> Landing light is noticeably dimmer than normal. Ammeter shows lower than expected current draw.
+                </div>
+                <div class="scenario-solution">
+                    <strong>Analysis:</strong> High resistance somewhere in circuit is dropping voltage before it reaches the bulb. Lower voltage = less current = dimmer light.<br><br>
+                    <strong>Troubleshooting:</strong>
+                    <ol>
+                        <li>Measure voltage at the bulb socket - should be 28V</li>
+                        <li>If low (e.g., 24V), the "missing" 4V is being dropped somewhere</li>
+                        <li>Perform voltage drop test on each connection back to breaker</li>
+                        <li>Common culprits: corroded wing root connector, dirty switch contacts</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: Safety -->
+        <section class="section">
+            <h2>8. Safety Considerations</h2>
+
+            <div class="safety-warning">
+                <h4>Electrostatic Discharge (ESD)</h4>
+                <ul>
+                    <li>Modern avionics contain ESD-sensitive components</li>
+                    <li>Static discharge as low as 30V can damage CMOS circuits</li>
+                    <li><strong>Always use ESD protection:</strong> Wrist straps, grounded mats, anti-static bags</li>
+                    <li>Ground yourself before touching circuit cards or connectors</li>
+                </ul>
+            </div>
+
+            <div class="safety-warning">
+                <h4>Battery Safety</h4>
+                <ul>
+                    <li>Aircraft batteries can deliver hundreds of amps in a short circuit</li>
+                    <li>Always disconnect battery before working on main bus wiring</li>
+                    <li>Remove rings, watches, and metal jewelry</li>
+                    <li>Never lay tools on top of batteries</li>
+                    <li>Lead-acid batteries produce hydrogen gas - ensure ventilation</li>
+                </ul>
+            </div>
+
+            <div class="info-box aircraft-specific">
+                <strong>Aircraft-Specific Cautions:</strong>
+                <ul>
+                    <li>Always use approved aircraft wire (MIL-W-22759 or equivalent)</li>
+                    <li>Route wiring away from flight controls, fuel lines, and hot areas</li>
+                    <li>Use proper wire gauges per AC 43.13-1B guidelines</li>
+                    <li>Secure all wiring with appropriate clamps and grommets</li>
+                    <li>Document all electrical work in aircraft maintenance records</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="section">
+            <h2>Lesson Summary</h2>
+
+            <p>You've covered the fundamental concepts of DC electrical systems used in aircraft:</p>
+
+            <ul>
+                <li><strong>Ohm's Law (V=IR)</strong> - The foundation of all circuit analysis</li>
+                <li><strong>Series Circuits</strong> - Same current, resistance adds, voltage divides</li>
+                <li><strong>Parallel Circuits</strong> - Same voltage, current adds, resistance decreases</li>
+                <li><strong>Power (P=VI)</strong> - Energy conversion rate, critical for wire sizing</li>
+                <li><strong>Multimeter Use</strong> - Voltage in parallel, current in series, resistance with power off</li>
+                <li><strong>Fault Diagnosis</strong> - Opens, shorts, and high-resistance connections</li>
+            </ul>
+
+            <div class="info-box">
+                <strong>Next Steps:</strong> Apply these concepts in the Flash Cards, Practice Test, and Jeopardy modules to reinforce your learning. Real proficiency comes from hands-on practice troubleshooting actual aircraft circuits.
+            </div>
+        </section>
+    </div>
+
+    <!-- Interactive Question Script -->
+    <script>
+        document.querySelectorAll('.interactive-question').forEach(question => {
+            const correctAnswer = question.dataset.correct;
+            const options = question.querySelectorAll('.question-option');
+            const correctFeedback = question.querySelector('.feedback.correct');
+            const incorrectFeedback = question.querySelector('.feedback.incorrect');
+            let answered = false;
+
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (answered) return;
+                    answered = true;
+
+                    const selected = option.dataset.value;
+
+                    if (selected === correctAnswer) {
+                        option.classList.add('correct');
+                        correctFeedback.classList.add('show');
+                    } else {
+                        option.classList.add('incorrect');
+                        incorrectFeedback.classList.add('show');
+                        // Highlight correct answer
+                        options.forEach(opt => {
+                            if (opt.dataset.value === correctAnswer) {
+                                opt.classList.add('correct');
+                            }
+                        });
+                    }
+
+                    // Disable all options
+                    options.forEach(opt => {
+                        opt.style.pointerEvents = 'none';
+                    });
+                });
+            });
+        });
+    </script>
+
+    <!-- LMS Progress Tracking for Classroom -->
+    <script>
+    (function() {
+        const MODULE_NAME = 'classroom';
+        const TOPIC_ID = 'fundamentals_dc';
+
+        let startTime = Date.now();
+        let maxScroll = 0;
+        let interactionCount = 0;
+        let timeOnPage = 0;
+        let questionsAnswered = 0;
+        let questionsCorrect = 0;
+
+        // Track scroll depth
+        window.addEventListener('scroll', function() {
+            const scrollPercent = ((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight) * 100;
+            maxScroll = Math.max(maxScroll, Math.min(100, Math.round(scrollPercent)));
+        });
+
+        // Track interactions
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('button, a, .interactive, input, .question-option')) {
+                interactionCount++;
+
+                // Track quiz interactions
+                if (e.target.classList.contains('question-option')) {
+                    const question = e.target.closest('.interactive-question');
+                    if (question && !question.dataset.answered) {
+                        question.dataset.answered = 'true';
+                        questionsAnswered++;
+
+                        const correctAnswer = question.dataset.correct;
+                        if (e.target.dataset.value === correctAnswer) {
+                            questionsCorrect++;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Track time
+        setInterval(function() {
+            if (!document.hidden) timeOnPage++;
+        }, 1000);
+
+        // Add completion button
+        const completeBtn = document.createElement('button');
+        completeBtn.innerHTML = 'Complete Lesson';
+        completeBtn.style.cssText = `
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; border: none; padding: 1rem 2rem;
+            font-weight: bold; text-transform: uppercase;
+            cursor: pointer; border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            opacity: 0.3; pointer-events: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        `;
+        document.body.appendChild(completeBtn);
+
+        // Enable when ready
+        function checkProgress() {
+            const timeReady = timeOnPage >= 120; // 2 minutes minimum
+            const scrollReady = maxScroll >= 75; // 75% scrolled
+            const interactionReady = interactionCount >= 3;
+
+            if ((scrollReady && timeReady) || (interactionReady && timeOnPage >= 60)) {
+                completeBtn.style.opacity = '1';
+                completeBtn.style.pointerEvents = 'auto';
+            }
+        }
+        setInterval(checkProgress, 3000);
+
+        // Report completion
+        completeBtn.addEventListener('click', function() {
+            // Calculate score based on multiple factors
+            let score = 60; // Base score for completion
+
+            // Scroll depth bonus (up to 15 points)
+            if (maxScroll >= 95) score += 15;
+            else if (maxScroll >= 85) score += 10;
+            else if (maxScroll >= 75) score += 5;
+
+            // Time bonus (up to 10 points)
+            if (timeOnPage >= 300) score += 10; // 5+ minutes
+            else if (timeOnPage >= 180) score += 7;
+            else if (timeOnPage >= 120) score += 5;
+
+            // Quiz performance bonus (up to 15 points)
+            if (questionsAnswered > 0) {
+                const quizPercent = (questionsCorrect / questionsAnswered) * 100;
+                if (quizPercent >= 80) score += 15;
+                else if (quizPercent >= 60) score += 10;
+                else score += 5;
+            }
+
+            score = Math.min(100, score);
+
+            if (window.parent && window.parent.completeModule) {
+                window.parent.completeModule(MODULE_NAME, score);
+                completeBtn.textContent = 'COMPLETED';
+                completeBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+                completeBtn.disabled = true;
+
+                setTimeout(() => {
+                    if (window.parent.showTab) window.parent.showTab('home');
+                }, 2000);
+            } else {
+                alert('Lesson Complete!\\n\\nScore: ' + score + '%\\n\\n' +
+                      'Time: ' + Math.round(timeOnPage/60) + ' minutes\\n' +
+                      'Scroll: ' + maxScroll + '%\\n' +
+                      'Quiz: ' + questionsCorrect + '/' + questionsAnswered + ' correct');
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

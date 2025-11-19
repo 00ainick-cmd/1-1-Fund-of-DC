@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACE HANGAR ACCESS - Practice Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* === GLOBAL STYLES === */
+:root {
+  --bg-dark: #0a0a14;
+  --bg-mid: #14141f;
+  --panel-bg: rgba(20, 20, 40, 0.7);
+  --cyan: #00ffff;
+  --violet: #8b5cf6;
+  --amber: #fbbf24;
+  --green: #10b981;
+  --red: #ef4444;
+  --text-primary: #e0e7ff;
+  --text-secondary: #a5b4fc;
+  --text-dim: #6366f1;
+  --pink: #ff69b4;
+  --magenta: #ff00ff;
+  --orange: #ff8c00;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier New', 'Consolas', monospace;
+  background: #0a0a14;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* === HANGAR DOORS ANIMATION === */
+.hangar-doors-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  pointer-events: none;
+  display: none;
+}
+
+.hangar-doors-overlay.active {
+  display: block;
+  pointer-events: all;
+}
+
+.door-left, .door-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: linear-gradient(90deg, #1a1a2e, #0a0a14);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.door-left {
+  left: 0;
+  border-right: 3px solid var(--cyan);
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      #1a1a2e 0px,
+      #1a1a2e 40px,
+      #16161f 40px,
+      #16161f 80px
+    );
+  /* Default state - open (off screen) */
+  transform: translateX(-100%);
+}
+
+.door-right {
+  right: 0;
+  border-left: 3px solid var(--cyan);
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      #16161f 0px,
+      #16161f 40px,
+      #1a1a2e 40px,
+      #1a1a2e 80px
+    );
+  /* Default state - open (off screen) */
+  transform: translateX(100%);
+}
+
+.door-left::before, .door-right::before {
+  content: '⚠ TRAINING BAY ⚠';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  color: var(--amber);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-shadow: 0 0 20px rgba(251,191,36,0.5);
+  opacity: 0.3;
+}
+
+/* Doors closed state */
+.hangar-doors-overlay.doors-closed .door-left {
+  transform: translateX(0);
+}
+
+.hangar-doors-overlay.doors-closed .door-right {
+  transform: translateX(0);
+}
+
+/* === CARD SLIDE ANIMATION === */
+@keyframes slideOutLeft {
+  0% { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(-150%) scale(0.8); opacity: 0; }
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(150%) scale(0.8); opacity: 0; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.flashcard-content.slide-out .question-box,
+.flashcard-content.slide-out .answer-box {
+  animation: slideOutLeft 0.5s ease-in-out;
+}
+
+.flashcard-content.slide-in .question-box,
+.flashcard-content.slide-in .answer-box {
+  animation: slideInRight 0.5s ease-in-out;
+}
+
+/* === EASTER EGG STYLES === */
+.konami-active {
+  animation: rainbow 2s linear infinite;
+}
+
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.achievement-popup {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--violet), var(--magenta));
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  z-index: 3000;
+  transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 10px 40px rgba(139,92,246,0.8);
+}
+
+.achievement-popup.show {
+  top: 20px;
+}
+
+.boss-mode {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+/* === END TRAINING BUTTON === */
+.end-training-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1));
+  border: 2px solid var(--red);
+  color: var(--red);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 100;
+  position: relative;
+  overflow: hidden;
+}
+
+.end-training-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(239,68,68,0.5);
+  background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.2));
+}
+
+.end-training-btn .hover-text {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239,68,68,0.9);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s, bottom 0.3s;
+  pointer-events: none;
+}
+
+.end-training-btn:hover .hover-text {
+  opacity: 1;
+  bottom: -40px;
+}
+
+/* Hangar Background Scene */
+.hangar-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.hangar-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: 
+    linear-gradient(180deg, transparent, rgba(30,30,40,0.3)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 100px,
+      rgba(255,255,255,0.02) 100px,
+      rgba(255,255,255,0.02) 102px
+    );
+  transform: perspective(500px) rotateX(70deg);
+  transform-origin: bottom;
+}
+
+.aircraft-small {
+  position: absolute;
+  bottom: 20%;
+  left: 15%;
+  width: 150px;
+  height: 80px;
+  background: linear-gradient(90deg, transparent 30%, rgba(20,20,30,0.8) 40%, rgba(20,20,30,0.8) 60%, transparent 70%);
+  clip-path: polygon(
+    30% 50%, 35% 30%, 40% 25%, 60% 25%, 65% 0%, 70% 0%, 
+    75% 25%, 95% 30%, 100% 50%, 95% 70%, 75% 75%, 
+    70% 100%, 65% 100%, 60% 75%, 40% 75%, 35% 70%, 30% 50%
+  );
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.aircraft-small:hover {
+  transform: scale(1.1);
+}
+
+.aircraft-jet {
+  position: absolute;
+  bottom: 25%;
+  right: 20%;
+  width: 180px;
+  height: 60px;
+  background: linear-gradient(90deg, transparent 20%, rgba(25,25,35,0.8) 30%, rgba(25,25,35,0.8) 80%, transparent 90%);
+  clip-path: polygon(
+    15% 50%, 20% 35%, 30% 30%, 50% 30%, 55% 10%, 60% 10%,
+    65% 30%, 90% 35%, 100% 50%, 90% 65%, 65% 70%,
+    60% 90%, 55% 90%, 50% 70%, 30% 70%, 20% 65%, 15% 50%
+  );
+}
+
+.workbench {
+  position: absolute;
+  bottom: 10%;
+  left: 45%;
+  width: 120px;
+  height: 50px;
+  background: linear-gradient(180deg, rgba(40,40,50,0.8), rgba(20,20,30,0.8));
+  border-top: 2px solid rgba(60,60,70,0.5);
+}
+
+.toolbox {
+  position: absolute;
+  bottom: 10%;
+  left: 48%;
+  width: 40px;
+  height: 25px;
+  background: rgba(180,20,20,0.6);
+  border-top: 3px solid rgba(200,40,40,0.8);
+}
+
+.hangar-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 10%, rgba(255,255,200,0.1) 0%, transparent 30%),
+    radial-gradient(ellipse at 80% 10%, rgba(255,255,200,0.1) 0%, transparent 30%),
+    radial-gradient(ellipse at 50% 10%, rgba(255,255,200,0.15) 0%, transparent 40%);
+}
+
+/* === TOPBAR === */
+.topbar {
+  background: linear-gradient(180deg, rgba(20,20,40,0.95), rgba(10,10,20,0.8));
+  border-bottom: 2px solid var(--cyan);
+  box-shadow: 0 0 30px rgba(0,255,255,0.5);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.brand h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,255,255,0.8);
+  cursor: pointer;
+}
+
+.user-info {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.user-info span {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* === MAIN LAYOUT === */
+.container {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === PANELS === */
+.panel {
+  background: linear-gradient(135deg, rgba(20,20,40,0.9), rgba(40,20,60,0.8));
+  backdrop-filter: blur(20px);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-image: linear-gradient(135deg, var(--cyan), var(--violet)) 1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 0 40px rgba(139,92,246,0.2),
+    inset 0 0 30px rgba(0,255,255,0.1);
+  position: relative;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(139,92,246,0.3);
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  text-shadow: 0 0 15px rgba(0,255,255,0.7);
+}
+
+.panel-badge {
+  background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(251,191,36,0.1));
+  border: 1px solid var(--amber);
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+/* === CATEGORY GRID === */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.category-card {
+  background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(20,0,40,0.5));
+  border: 2px solid rgba(0,255,255,0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.category-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--magenta);
+  box-shadow: 0 10px 30px rgba(255,0,255,0.4);
+}
+
+.category-card.selected {
+  background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(139,92,246,0.2));
+  border-color: var(--cyan);
+  box-shadow: 0 0 30px rgba(0,255,255,0.6);
+}
+
+.category-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.category-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.category-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+/* === REVIEW OVERLAY === */
+.review-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at center, rgba(10,10,20,0.98) 0%, rgba(20,0,40,0.95) 100%);
+  backdrop-filter: blur(20px);
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.review-overlay.active {
+  display: flex;
+}
+
+.review-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+}
+
+.training-label {
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+
+.training-label span {
+  color: var(--green);
+  margin-left: 1rem;
+  text-shadow: 0 0 10px rgba(16,185,129,0.8);
+}
+
+.card-counter {
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.review-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.question-box, .answer-box {
+  background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,40,0.5));
+  border: 2px solid var(--cyan);
+  border-radius: 8px;
+  padding: 2rem;
+  min-height: 250px;
+  box-shadow: 
+    0 0 40px rgba(0,255,255,0.4),
+    inset 0 0 20px rgba(0,255,255,0.1);
+  position: relative;
+}
+
+.box-label {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.question-text {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.answer-box {
+  border-color: var(--green);
+  box-shadow: 
+    0 0 40px rgba(16,185,129,0.4),
+    inset 0 0 20px rgba(16,185,129,0.1);
+  position: relative;
+}
+
+.answer-box .box-label {
+  color: var(--green);
+}
+
+.answer-text {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  filter: blur(0);
+  transition: filter 0.3s;
+}
+
+.answer-text.hidden {
+  filter: blur(8px);
+  user-select: none;
+}
+
+.hidden-badge {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, var(--amber), var(--orange));
+  color: #000;
+  padding: 0.35rem 1rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 20px rgba(251,191,36,0.6);
+}
+
+.review-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.review-btn {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid;
+  background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(20,0,40,0.3));
+  position: relative;
+  overflow: hidden;
+}
+
+.review-btn.show-answer {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.review-btn.got-it {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.review-btn.missed-it {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.review-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px currentColor;
+}
+
+.review-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.motivational-text {
+  text-align: center;
+  color: var(--pink);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  max-width: 800px;
+  margin: 0 auto;
+  text-shadow: 0 0 10px rgba(255,105,180,0.5);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.card-tags {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139,92,246,0.3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.card-tag {
+  background: rgba(139,92,246,0.2);
+  border: 1px solid var(--violet);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  color: var(--violet);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* === START BUTTON === */
+.btn-start {
+  background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,200,200,0.1));
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  padding: 1.25rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-start:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,255,255,0.5);
+}
+
+.btn-start:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* === RESET STATS BUTTON === */
+.btn-reset-stats {
+  background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.1));
+  border: 1px solid rgba(139,92,246,0.5);
+  color: var(--violet);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.btn-reset-stats:hover {
+  background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(99,102,241,0.2));
+  box-shadow: 0 5px 20px rgba(139,92,246,0.3);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(20,0,40,0.3));
+  border: 2px solid;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.stat-card.seen { border-color: var(--cyan); }
+.stat-card.seen .stat-label, .stat-card.seen .stat-value { color: var(--cyan); }
+.stat-card.correct { border-color: var(--green); }
+.stat-card.correct .stat-label, .stat-card.correct .stat-value { color: var(--green); }
+.stat-card.missed { border-color: var(--red); }
+.stat-card.missed .stat-label, .stat-card.missed .stat-value { color: var(--red); }
+
+.weak-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.weak-list-empty {
+  color: var(--pink);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+}
+
+.weak-item {
+  background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05));
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.weak-item-prompt {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.weak-item-answer {
+  color: var(--green);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.weak-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.weak-item-tag {
+  background: rgba(139,92,246,0.2);
+  border: 1px solid var(--violet);
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  color: var(--violet);
+}
+</style>
+</head>
+<body>
+
+<!-- Achievement Popup -->
+<div class="achievement-popup" id="achievementPopup"></div>
+
+<!-- Hangar Doors Overlay -->
+<div class="hangar-doors-overlay" id="hangarDoorsOverlay">
+  <div class="door-left"></div>
+  <div class="door-right"></div>
+</div>
+
+<!-- Hangar Background -->
+<div class="hangar-background" id="hangarBg">
+  <div class="hangar-lights"></div>
+  <div class="aircraft-small" id="smallAircraft"></div>
+  <div class="aircraft-jet"></div>
+  <div class="workbench"></div>
+  <div class="toolbox"></div>
+  <div class="hangar-floor"></div>
+</div>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="brand">
+    <h1 id="brandTitle">ACE HANGAR ACCESS</h1>
+  </div>
+  <div class="user-info">
+    Welcome, <span id="userName">TECHNICIAN</span> • <span>TRAINING MODE</span>
+  </div>
+</header>
+
+<!-- Main Container -->
+<main class="container">
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Practice Test</h2>
+      <div class="panel-badge" id="categoryBadge">SELECT CATEGORY</div>
+    </div>
+    <div class="category-grid" id="categoryGrid"></div>
+    <button class="btn-start" id="btnStart" disabled>START REVIEW</button>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Session Stats</h2>
+      <div class="panel-badge">CUMULATIVE</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card seen">
+        <div class="stat-label">TOTAL SEEN</div>
+        <div class="stat-value" id="statSeen">0</div>
+      </div>
+      <div class="stat-card correct">
+        <div class="stat-label">TOTAL CORRECT</div>
+        <div class="stat-value" id="statCorrect">0</div>
+      </div>
+      <div class="stat-card missed">
+        <div class="stat-label">TOTAL MISSED</div>
+        <div class="stat-value" id="statMissed">0</div>
+      </div>
+    </div>
+    <button class="btn-reset-stats" id="btnResetStats">RESET SESSION STATS</button>
+    <div class="panel-header" style="margin-top: 1.5rem;">
+      <h3 class="panel-title">Weak List</h3>
+      <div class="panel-badge">TARGET</div>
+    </div>
+    <div class="weak-list" id="weakList">
+      <p class="weak-list-empty">Miss something and it shows up here.</p>
+    </div>
+  </aside>
+</main>
+
+<!-- === REVIEW OVERLAY === -->
+<div class="review-overlay" id="reviewOverlay">
+  <button class="end-training-btn" id="btnEndTraining">
+    END TRAINING
+    <span class="hover-text">Are you quitting already?</span>
+  </button>
+  
+  <div class="review-container">
+    <div class="review-header">
+      <div class="training-label">REVIEW: <span>LIVE</span></div>
+      <div class="card-counter">CARD <span id="cardNumber">1/1</span></div>
+    </div>
+    
+    <div class="review-content" id="reviewContent">
+      <div class="question-box">
+        <div class="box-label">QUESTION</div>
+        <div class="question-text" id="questionText"></div>
+        <div class="card-tags" id="questionTags"></div>
+      </div>
+      
+      <div class="answer-box">
+        <div class="box-label">ANSWER</div>
+        <div class="hidden-badge" id="hiddenBadge">HIDDEN</div>
+        <div class="answer-text hidden" id="answerText"></div>
+      </div>
+    </div>
+    
+    <div class="review-controls">
+      <button class="review-btn show-answer" id="btnShowAnswer">SHOW ANSWER</button>
+      <button class="review-btn got-it" id="btnGotIt" disabled>GOT IT</button>
+      <button class="review-btn missed-it" id="btnMissedIt" disabled>MISSED IT</button>
+    </div>
+    
+    <div class="motivational-text" id="motivationalText">
+      Don't Suck... 😊
+    </div>
+  </div>
+</div>
+
+<script>
+// Helper function for creating questions
+function q(prompt, answer, tags) {
+  return { id: crypto.randomUUID(), prompt, answer, tags };
+}
+
+// Your test questions
+// Your test questions
+// Your test questions
+const CATEGORIES = [
+  { id:'ohms_law', name:'Ohm\'s Law (V=IR)', icon:'⚡', iconColor:'#ffff00',
+    items:[
+      q('What is the formula for Ohm\'s Law?', 'Voltage (V) = Current (I) * Resistance (R)', ['Ohm\'s Law', 'Formula']),
+      q('What unit is Voltage (V) measured in?', 'Volts (V)', ['Ohm\'s Law', 'Units']),
+      q('What unit is Current (I) measured in?', 'Amperes or Amps (A)', ['Ohm\'s Law', 'Units']),
+      q('What unit is Resistance (R) measured in?', 'Ohms (Ω)', ['Ohm\'s Law', 'Units']),
+      q('A 28V circuit has 14Ω of resistance. How much current flows?', '2 Amps (I = V/R = 28V / 14Ω)', ['Ohm\'s Law', 'Calculation']),
+      q('A circuit has 5A of current flowing through a 4Ω resistor. What is the voltage drop?', '20 Volts (V = I*R = 5A * 4Ω)', ['Ohm\'s Law', 'Calculation']),
+      q('A 12V light bulb draws 2A. What is its resistance?', '6 Ohms (R = V/I = 12V / 2A)', ['Ohm\'s Law', 'Calculation']),
+      q('What is a "short circuit" in terms of resistance?', 'A path with very low or near-zero resistance (R ≈ 0).', ['Ohm\'s Law', 'Faults']),
+      q('According to Ohm\'s law, what happens to current if resistance in a 28V circuit becomes very low (a short)?', 'Current becomes very high, which should trip a circuit breaker.', ['Ohm\'s Law', 'Faults']),
+      q('What is an "open circuit" in terms of resistance?', 'A path with infinite or extremely high resistance (R = ∞).', ['Ohm\'s Law', 'Faults'])
+    ]},
+  { id:'watts_law', name:'Watt\'s Law (P=IV) & Power', icon:'🔥', iconColor:'#ff6347',
+    items:[
+      q('What is the formula for electrical Power (Watt\'s Law)?', 'Power (P) = Voltage (V) * Current (I)', ['Watt\'s Law', 'Formula']),
+      q('What unit is electrical Power (P) measured in?', 'Watts (W)', ['Watt\'s Law', 'Units']),
+      q('A 28V circuit draws 2A. How much power is consumed?', '56 Watts (P = V*I = 28V * 2A)', ['Watt\'s Law', 'Calculation']),
+      q('A 100W light bulb is connected to a 28V bus. How much current does it draw?', 'Approximately 3.57 Amps (I = P/V = 100W / 28V)', ['Watt\'s Law', 'Calculation']),
+      q('A component is rated for 56W and 28V. What is its expected current draw?', '2 Amps (I = P/V = 56W / 28V)', ['Watt\'s Law', 'Calculation']),
+      q('What is the power formula using resistance and current?', 'P = I²R (Power = Current-squared * Resistance)', ['Watt\'s Law', 'Formula']),
+      q('What is the power formula using voltage and resistance?', 'P = V²/R (Power = Voltage-squared / Resistance)', ['Watt\'s Law', 'Formula']),
+      q('A 14Ω resistor has 2A flowing through it. How much power does it dissipate?', '56 Watts (P = I²R = 2² * 14 = 4 * 14)', ['Watt\'s Law', 'Calculation']),
+      q('A 10-Amp circuit breaker is used in a 28V system. What is the maximum power the circuit can handle?', '280 Watts (P = V*I = 28V * 10A)', ['Watt\'s Law', 'Calculation', 'Safety']),
+      q('Why do resistors have a "wattage" rating?', 'It specifies the maximum amount of heat (power) they can safely dissipate before being damaged.', ['Watt\'s Law', 'Components'])
+    ]},
+  { id:'multimeter', name:'Using a Multimeter (DMM)', icon:'📟', iconColor:'#00ced1',
+    items:[
+      q('What is the most critical safety step before measuring resistance?', 'Ensure all electrical power is removed from the circuit or component.', ['Multimeter', 'Safety']),
+      q('How must a multimeter be connected to measure voltage?', 'In parallel (across) the component or power source.', ['Multimeter', 'Voltage']),
+      q('How must a multimeter be connected to measure current?', 'In series (in-line), which requires opening the circuit to insert the meter.', ['Multimeter', 'Current']),
+      q('What happens if you try to measure voltage with the meter in the "Amps" setting?', 'You create a short circuit through the meter, likely blowing the meter\'s internal fuse.', ['Multimeter', 'Safety', 'Faults']),
+      q('A multimeter set to "continuity" beeps and reads near 0 Ω. What does this mean?', 'There is a good, complete path. The wire is not "open".', ['Multimeter', 'Continuity']),
+      q('What does a multimeter reading of "OL" or "I" mean when testing for continuity?', '"Over Load" or "Infinite." It means the circuit is "open" and there is no path.', ['Multimeter', 'Continuity']),
+      q('To measure the current drawn by a light bulb, where do you place the meter?', 'In series: Disconnect one wire from the bulb, connect one meter lead to the wire, and the other lead to the bulb.', ['Multimeter', 'Current']),
+      q('When measuring resistance, why must the component be isolated?', 'To prevent reading the resistance of other components connected in parallel.', ['Multimeter', 'Resistance']),
+      q('What meter setting is used to check for a short to ground?', 'Continuity or Resistance, checking from the wire/pin to the aircraft airframe (ground).', ['Multimeter', 'Troubleshooting']),
+      q('What does "Auto-ranging" mean on a multimeter?', 'The meter automatically selects the correct measurement range (e.g., V, mV, kΩ) for the best accuracy.', ['Multimeter', 'Features'])
+    ]},
+  { id:'series_circuits', name:'Series Circuits', icon:'⛓️', iconColor:'#32cd32',
+    items:[
+      q('What is the rule for total resistance (R_T) in a series circuit?', 'Total resistance is the sum of all individual resistances (R_T = R1 + R2 + R3...).', ['Series', 'Formula']),
+      q('What is the rule for current (I) in a series circuit?', 'Current is the same through all components in the circuit.', ['Series', 'Principles']),
+      q('Three resistors (5Ω, 10Ω, 15Ω) are in series. What is the total resistance?', '30 Ohms (5 + 10 + 15)', ['Series', 'Calculation']),
+      q('What happens to the total current in a series circuit if one component "opens"?', 'The current drops to zero for the entire circuit.', ['Series', 'Troubleshooting', 'Faults']),
+      q('What is the rule for total voltage in a series circuit?', 'The total voltage from the source is divided among the components (it adds up).', ['Series', 'Principles', 'KVL']),
+      q('A 28V source powers two 7Ω resistors in series. What is the current?', '2 Amps (R_T = 7+7=14Ω; I = 28V/14Ω = 2A)', ['Series', 'Calculation']),
+      q('In a series circuit, which resistor drops the most voltage?', 'The resistor with the highest resistance value.', ['Series', 'Principles']),
+      q('Two 10Ω resistors are in series with a 20V source. What is the voltage drop across *one* of them?', '10 Volts (R_T = 20Ω; I = 1A; V_drop = 1A * 10Ω = 10V)', ['Series', 'Calculation']),
+      q('What is a "voltage divider"?', 'A series circuit used to produce a lower voltage at the junction between components.', ['Series', 'Components']),
+      q('What happens to total resistance in a series circuit if you add another resistor?', 'Total resistance increases.', ['Series', 'Principles'])
+    ]},
+  { id:'parallel_circuits', name:'Parallel Circuits', icon:'📊', iconColor:'#ffa500',
+    items:[
+      q('What is the rule for voltage in a parallel circuit?', 'Voltage is the same across all components (branches) in the circuit.', ['Parallel', 'Principles']),
+      q('What is the rule for total current (I_T) in a parallel circuit?', 'Total current is the sum of the currents in all the individual branches (I_T = I1 + I2 + ...).', ['Parallel', 'Formula', 'KCL']),
+      q('What happens to total resistance in a parallel circuit if you add another branch?', 'Total resistance *decreases*.', ['Parallel', 'Principles']),
+      q('Two 10Ω resistors are in parallel. What is the total resistance (R_T)?', '5 Ohms (R_T = (R1*R2)/(R1+R2) or 1/(1/10 + 1/10))', ['Parallel', 'Calculation']),
+      q('If one branch of a parallel circuit "opens," what happens to the other branches?', 'They are unaffected and continue to operate normally.', ['Parallel', 'Troubleshooting', 'Faults']),
+      q('Two 10A lights are wired in parallel to a 28V bus. What is the total current drawn?', '20 Amps (10A + 10A)', ['Parallel', 'Calculation']),
+      q('What happens to total current if one branch in a parallel circuit "shorts"?', 'Total current becomes extremely high as the shorted branch draws almost all current, tripping the breaker.', ['Parallel', 'Troubleshooting', 'Faults']),
+      q('The total resistance in a parallel circuit is always...', '...less than the smallest individual branch resistance.', ['Parallel', 'Principles']),
+      q('Why are most aircraft components (lights, LRUs) wired in parallel?', 'So that if one component fails (opens), the others continue to receive power.', ['Parallel', 'Application']),
+      q('Three 30Ω resistors are in parallel. What is the total resistance?', '10 Ohms (For equal resistors, R_T = R / N = 30Ω / 3)', ['Parallel', 'Calculation'])
+    ]},
+  { id:'kirchhoff_faults', name:'Kirchhoff\'s Laws & Fault Diagnosis', icon:'🔎', iconColor:'#b22222',
+    items:[
+      q('What does Kirchhoff\'s Voltage Law (KVL) state?', 'The sum of all voltage drops around any closed loop must equal the source voltage.', ['Kirchhoff\'s Laws', 'KVL', 'Formula']),
+      q('What does Kirchhoff\'s Current Law (KCL) state?', 'The total current entering a junction or node must equal the total current leaving it.', ['Kirchhoff\'s Laws', 'KCL', 'Formula']),
+      q('A wire\'s conductor is touching the airframe. What is this fault called?', 'A "short circuit to ground," which will cause excessive current.', ['Troubleshooting', 'Faults']),
+      q('A wire is broken and no current can flow. What is this fault called?', 'An "open circuit," which has infinite resistance.', ['Troubleshooting', 'Faults']),
+      q('A corroded connector pin causes an unexpected voltage drop. What is this fault?', 'A "high-resistance" fault, which reduces current and adds heat.', ['Troubleshooting', 'Faults']),
+      q('KVL is the principle behind how what type of circuit works?', 'A series circuit, where the voltage drops add up to the source voltage.', ['Kirchhoff\'s Laws', 'KVL', 'Series']),
+      q('KCL is the principle behind how what type of circuit works?', 'A parallel circuit, where the branch currents add up to the total current.', ['Kirchhoff\'s Laws', 'KCL', 'Parallel']),
+      q('A technician reads 28V at the circuit breaker but 0V at the LRU. What is the most likely fault?', 'An "open circuit" in the wiring between the breaker and the LRU.', ['Troubleshooting', 'Faults', 'Open Circuit']),
+      q('A 5A breaker trips immediately when the avionics master is turned on. What is the most likely fault?', 'A "short circuit" in that component or its wiring.', ['Troubleshooting', 'Faults', 'Short Circuit']),
+      q('A junction has 5A coming in, 2A going to one light, and 3A going to another. This demonstrates what law?', 'Kirchhoff\'s Current Law (KCL), where 5A_in = 2A_out + 3A_out.', ['Kirchhoff\'s Laws', 'KCL', 'Calculation'])
+    ]}
+];
+// Motivational messages array
+const MOTIVATIONAL_MESSAGES = [
+  "You Can Do It!!! 😊",
+  "You got this! 💪",
+  "Keep pushing, technician!",
+  "Excellence is a habit 🚀",
+  "Safety first, always! ⚠️",
+  "Knowledge is power ⚡",
+  "Precision matters 🎯",
+  "Stay focused! 👁️",
+  "Almost there! 🏁",
+  "Pro tip: Coffee helps ☕"
+];
+
+// === STATE ===
+let state = {
+  currentCategory: null,
+  cards: [],
+  currentCardIndex: 0,
+  answerShown: false,
+  sessionStats: { seen: 0, correct: 0, missed: 0 },
+  weakList: [],
+  konamiProgress: 0,
+  easterEggActive: false,
+  clickCount: 0
+};
+
+// === EASTER EGGS ===
+const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+function showAchievement(text) {
+  const popup = document.getElementById('achievementPopup');
+  popup.textContent = text;
+  popup.classList.add('show');
+  
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, 30000);
+}
+
+// Konami Code Easter Egg
+document.addEventListener('keydown', (e) => {
+  if (KONAMI_CODE[state.konamiProgress] === e.key) {
+    state.konamiProgress++;
+    if (state.konamiProgress === KONAMI_CODE.length) {
+      activateKonamiMode();
+      state.konamiProgress = 0;
+    }
+  } else {
+    state.konamiProgress = 0;
+  }
+});
+
+function activateKonamiMode() {
+  document.body.classList.add('konami-active');
+  showAchievement('🎮 KONAMI MODE ACTIVATED!');
+  setTimeout(() => {
+    document.body.classList.remove('konami-active');
+  }, 10000);
+}
+
+// Aircraft Click Easter Egg
+document.getElementById('smallAircraft').addEventListener('click', () => {
+  state.clickCount++;
+  if (state.clickCount === 5) {
+    document.getElementById('smallAircraft').style.animation = 'shake 0.5s';
+    showAchievement('✈️ AIRCRAFT INSPECTOR!');
+    setTimeout(() => {
+      document.getElementById('smallAircraft').style.animation = '';
+    }, 500);
+    state.clickCount = 0;
+  }
+});
+
+// Title Click Easter Egg (Boss Mode)
+document.getElementById('brandTitle').addEventListener('click', () => {
+  document.body.classList.add('boss-mode');
+  document.getElementById('userName').textContent = 'BOSS';
+  showAchievement('👔 BOSS MODE ENGAGED!');
+  
+  setTimeout(() => {
+    document.body.classList.remove('boss-mode');
+    document.getElementById('userName').textContent = 'TECHNICIAN';
+  }, 3000);
+});
+
+// Load session stats from localStorage
+function loadSessionStats() {
+  const saved = localStorage.getItem('aceSessionStats');
+  if (saved) {
+    state.sessionStats = JSON.parse(saved);
+    updateStats();
+  }
+}
+
+// Save session stats to localStorage
+function saveSessionStats() {
+  localStorage.setItem('aceSessionStats', JSON.stringify(state.sessionStats));
+}
+
+// === DOM REFERENCES ===
+// Will be populated when page loads
+let dom = {};
+
+// === HANGAR DOOR ANIMATIONS ===
+function doorsTransition(showReview, callback) {
+  const overlay = dom.hangarDoorsOverlay;
+  
+  // Show overlay
+  overlay.classList.add('active');
+  
+  // Step 1: Close doors (bring them together)
+  setTimeout(() => {
+    overlay.classList.add('doors-closed');
+  }, 100);
+  
+  // Step 2: Switch screens while doors are closed
+  setTimeout(() => {
+    if (showReview) {
+      dom.reviewOverlay.classList.add('active');
+    } else {
+      dom.reviewOverlay.classList.remove('active');
+    }
+  }, 1300);
+  
+  // Step 3: Open doors (spread them apart)
+  setTimeout(() => {
+    overlay.classList.remove('doors-closed');
+  }, 1400);
+  
+  // Step 4: Hide overlay and execute callback
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    if (callback) callback();
+  }, 2600);
+}
+
+// === INITIALIZE APP ===
+function initializeApp() {
+  // Initialize DOM references after page loads
+  dom = {
+    categoryGrid: document.getElementById('categoryGrid'),
+    categoryBadge: document.getElementById('categoryBadge'),
+    btnStart: document.getElementById('btnStart'),
+    reviewOverlay: document.getElementById('reviewOverlay'),
+    reviewContent: document.getElementById('reviewContent'),
+    cardNumber: document.getElementById('cardNumber'),
+    questionText: document.getElementById('questionText'),
+    questionTags: document.getElementById('questionTags'),
+    answerText: document.getElementById('answerText'),
+    hiddenBadge: document.getElementById('hiddenBadge'),
+    btnShowAnswer: document.getElementById('btnShowAnswer'),
+    btnGotIt: document.getElementById('btnGotIt'),
+    btnMissedIt: document.getElementById('btnMissedIt'),
+    btnEndTraining: document.getElementById('btnEndTraining'),
+    btnResetStats: document.getElementById('btnResetStats'),
+    statSeen: document.getElementById('statSeen'),
+    statCorrect: document.getElementById('statCorrect'),
+    statMissed: document.getElementById('statMissed'),
+    weakList: document.getElementById('weakList'),
+    hangarDoorsOverlay: document.getElementById('hangarDoorsOverlay'),
+    motivationalText: document.getElementById('motivationalText')
+  };
+
+  loadSessionStats();
+  renderCategories();
+  bindEventHandlers();
+}
+
+// === RENDER CATEGORIES ===
+function renderCategories() {
+  dom.categoryGrid.innerHTML = CATEGORIES.map(category => `
+    <div class="category-card" data-category-id="${category.id}">
+      <div class="category-icon" style="color: ${category.iconColor}">
+        ${category.icon}
+      </div>
+      <div class="category-name">${category.name}</div>
+      <div class="category-count">${category.items.length} questions</div>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('click', selectCategory);
+  });
+}
+
+function selectCategory(e) {
+  const categoryId = e.currentTarget.dataset.categoryId;
+  state.currentCategory = CATEGORIES.find(c => c.id === categoryId);
+  
+  document.querySelectorAll('.category-card').forEach(card => card.classList.remove('selected'));
+  e.currentTarget.classList.add('selected');
+  
+  dom.categoryBadge.textContent = state.currentCategory.name.split(' ')[0].toUpperCase();
+  dom.btnStart.disabled = false;
+}
+
+function startSession() {
+  state.cards = shuffleArray([...state.currentCategory.items]);
+  state.currentCardIndex = 0;
+  
+  // Use door transition to show review screen
+  doorsTransition(true, () => {
+    loadCard();
+  });
+}
+
+function loadCard() {
+  if (state.currentCardIndex >= state.cards.length) {
+    endSession();
+    return;
+  }
+  
+  const card = state.cards[state.currentCardIndex];
+  state.answerShown = false;
+  
+  // Update motivational message randomly
+  if (Math.random() > 0.7) {
+    dom.motivationalText.textContent = MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
+  }
+  
+  dom.cardNumber.textContent = `${state.currentCardIndex + 1}/${state.cards.length}`;
+  dom.questionText.textContent = card.prompt;
+  dom.answerText.textContent = card.answer;
+  dom.answerText.classList.add('hidden');
+  dom.hiddenBadge.style.display = 'block';
+  
+  dom.questionTags.innerHTML = card.tags.map(tag => 
+    `<span class="card-tag">${tag}</span>`
+  ).join('');
+  
+  dom.btnShowAnswer.disabled = false;
+  dom.btnGotIt.disabled = true;
+  dom.btnMissedIt.disabled = true;
+}
+
+function animateCardTransition(callback) {
+  dom.reviewContent.classList.add('slide-out');
+  
+  setTimeout(() => {
+    dom.reviewContent.classList.remove('slide-out');
+    dom.reviewContent.classList.add('slide-in');
+    callback();
+    
+    setTimeout(() => {
+      dom.reviewContent.classList.remove('slide-in');
+    }, 500);
+  }, 500);
+}
+
+function showAnswer() {
+  state.answerShown = true;
+  dom.answerText.classList.remove('hidden');
+  dom.hiddenBadge.style.display = 'none';
+  
+  dom.btnShowAnswer.disabled = true;
+  dom.btnGotIt.disabled = false;
+  dom.btnMissedIt.disabled = false;
+  
+  state.sessionStats.seen++;
+  updateStats();
+  saveSessionStats();
+}
+
+function markGotIt() {
+  state.sessionStats.correct++;
+  updateStats();
+  saveSessionStats();
+  
+  dom.btnGotIt.disabled = true;
+  dom.btnMissedIt.disabled = true;
+  
+  // Achievement check
+  if (state.sessionStats.correct % 10 === 0) {
+    showAchievement(`🏆 ${state.sessionStats.correct} CORRECT ANSWERS!`);
+  }
+  
+  // Auto advance to next card
+  setTimeout(() => {
+    state.currentCardIndex++;
+    if (state.currentCardIndex < state.cards.length) {
+      animateCardTransition(() => loadCard());
+    } else {
+      endSession();
+    }
+  }, 100);
+}
+
+function markMissedIt() {
+  const card = state.cards[state.currentCardIndex];
+  state.sessionStats.missed++;
+  
+  if (!state.weakList.find(item => item.id === card.id)) {
+    state.weakList.push(card);
+    updateWeakList();
+  }
+  
+  updateStats();
+  saveSessionStats();
+  
+  dom.btnGotIt.disabled = true;
+  dom.btnMissedIt.disabled = true;
+  
+  // Auto advance to next card
+  setTimeout(() => {
+    state.currentCardIndex++;
+    if (state.currentCardIndex < state.cards.length) {
+      animateCardTransition(() => loadCard());
+    } else {
+      endSession();
+    }
+  }, 100);
+}
+
+function endSession() {
+  // Auto-report score to parent page for gamification
+  if (state.sessionStats.seen > 0) {
+    reportTestScore(state.sessionStats.correct, state.sessionStats.seen);
+  }
+
+  // Use door transition to show home screen
+  doorsTransition(false, () => {
+    document.querySelectorAll('.category-card').forEach(card => card.classList.remove('selected'));
+    dom.btnStart.disabled = true;
+    dom.categoryBadge.textContent = 'SELECT CATEGORY';
+  });
+}
+
+function updateStats() {
+  dom.statSeen.textContent = state.sessionStats.seen;
+  dom.statCorrect.textContent = state.sessionStats.correct;
+  dom.statMissed.textContent = state.sessionStats.missed;
+}
+
+function resetStats() {
+  if (confirm('Are you sure you want to reset all session statistics?')) {
+    state.sessionStats = { seen: 0, correct: 0, missed: 0 };
+    state.weakList = [];
+    updateStats();
+    updateWeakList();
+    saveSessionStats();
+    localStorage.removeItem('aceWeakList');
+  }
+}
+
+function updateWeakList() {
+  localStorage.setItem('aceWeakList', JSON.stringify(state.weakList));
+  
+  if (state.weakList.length === 0) {
+    dom.weakList.innerHTML = '<p class="weak-list-empty">Miss something and it shows up here.</p>';
+  } else {
+    dom.weakList.innerHTML = state.weakList.map(item => `
+      <div class="weak-item">
+        <div class="weak-item-prompt">${item.prompt}</div>
+        <div class="weak-item-answer">✓ ${item.answer}</div>
+        <div class="weak-item-tags">
+          ${item.tags.map(tag => `
+            <span class="weak-item-tag">${tag}</span>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// === EVENT HANDLERS ===
+function bindEventHandlers() {
+  dom.btnStart.addEventListener('click', startSession);
+  dom.btnShowAnswer.addEventListener('click', showAnswer);
+  dom.btnGotIt.addEventListener('click', markGotIt);
+  dom.btnMissedIt.addEventListener('click', markMissedIt);
+  dom.btnEndTraining.addEventListener('click', endSession);
+  dom.btnResetStats.addEventListener('click', resetStats);
+  
+  const savedWeakList = localStorage.getItem('aceWeakList');
+  if (savedWeakList) {
+    state.weakList = JSON.parse(savedWeakList);
+    updateWeakList();
+  }
+  
+  document.addEventListener('keydown', (e) => {
+    if (!dom.reviewOverlay.classList.contains('active')) return;
+    
+    switch(e.key.toUpperCase()) {
+      case ' ':
+      case 'S':
+        if (!dom.btnShowAnswer.disabled) showAnswer();
+        break;
+      case 'G':
+        if (!dom.btnGotIt.disabled) markGotIt();
+        break;
+      case 'M':
+        if (!dom.btnMissedIt.disabled) markMissedIt();
+        break;
+      case 'ESCAPE':
+        endSession();
+        break;
+    }
+  });
+}
+
+// Start the app when page loads
+window.addEventListener('load', initializeApp);
+
+// ============================================================================
+// GAMIFICATION INTEGRATION - Auto-report score when session ends
+// ============================================================================
+function reportTestScore(userScore, totalPossible) {
+  const percentage = Math.round((userScore / totalPossible) * 100);
+
+  try {
+    if (window.parent && window.parent.completeModule) {
+      window.parent.completeModule('practice', percentage);
+    }
+  } catch(e) {
+    // Running in standalone mode - no gamification
+  }
+}
+
+window.reportTestScore = reportTestScore;
+</script>
+
+<!-- LMS Progress Tracking -->
+<script>
+// CAET LMS Integration
+(function() {
+    // IMPORTANT: Update this for each lesson
+    const LESSON_NUMBER = 1; // Change to 1, 2, 3, or 4 based on lesson
+    const MODULE_ID = 'electricity'; // or 'maintenance', 'systems' based on module
+    const LESSON_XP = 100; // Update based on lesson: L1=100, L2=120, L3=100, L4=80
+
+    // Initialize tracking
+    let startTime = Date.now();
+    let progress = 0;
+    const storageKey = 'caet_lms_' + MODULE_ID;
+
+    // Track page scroll for progress
+    window.addEventListener('scroll', function() {
+        const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
+        progress = Math.min(100, Math.round(scrollPercent));
+
+        // Save progress every 20%
+        if (progress % 20 === 0) {
+            saveProgress();
+        }
+    });
+
+    // Save progress function
+    function saveProgress() {
+        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        if (!lmsState.lessons) lmsState.lessons = {};
+        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
+
+        lmsState.lessons[LESSON_NUMBER].progress = progress;
+        lmsState.lessons[LESSON_NUMBER].lastAccessed = new Date().toISOString();
+
+        localStorage.setItem(storageKey, JSON.stringify(lmsState));
+    }
+
+    // Complete lesson function
+    window.completeLesson = function() {
+        const lmsState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+        // Initialize structure if needed
+        if (!lmsState.lessons) lmsState.lessons = {};
+        if (!lmsState.lessons[LESSON_NUMBER]) lmsState.lessons[LESSON_NUMBER] = {};
+
+        // Mark as complete
+        lmsState.lessons[LESSON_NUMBER].completed = true;
+        lmsState.lessons[LESSON_NUMBER].progress = 100;
+        lmsState.lessons[LESSON_NUMBER].completedAt = new Date().toISOString();
+
+        // Award XP
+        lmsState.totalXP = (lmsState.totalXP || 0) + LESSON_XP;
+
+        // Check for badge unlocks
+        if (LESSON_NUMBER === 1) lmsState.badges = {...(lmsState.badges || {}), 1: true};
+        if (LESSON_NUMBER === 2) lmsState.badges = {...(lmsState.badges || {}), 2: true};
+        if (LESSON_NUMBER === 4) lmsState.badges = {...(lmsState.badges || {}), 3: true};
+
+        // Check module completion
+        const allComplete = [1,2,3,4].every(num =>
+            lmsState.lessons[num] && lmsState.lessons[num].completed
+        );
+        if (allComplete) lmsState.badges = {...(lmsState.badges || {}), 4: true};
+
+        localStorage.setItem(storageKey, JSON.stringify(lmsState));
+
+        // Show success message
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #00ff41, #00cc33);
+            color: #000;
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.8);
+            animation: popIn 0.5s ease;
+        `;
+        successDiv.innerHTML = `
+            <div>✓ LESSON COMPLETE!</div>
+            <div style="font-size: 1rem; margin-top: 0.5rem;">+${LESSON_XP} XP EARNED</div>
+        `;
+        document.body.appendChild(successDiv);
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes popIn {
+                0% { transform: translate(-50%, -50%) scale(0) rotate(180deg); opacity: 0; }
+                50% { transform: translate(-50%, -50%) scale(1.2) rotate(0); }
+                100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Redirect to dashboard after delay
+        setTimeout(() => {
+            window.location.href = '/caet-dashboard?completed=' + LESSON_NUMBER;
+        }, 2000);
+    }
+
+    // Add completion button if it doesn't exist
+    window.addEventListener('load', function() {
+        // Check if button already exists
+        if (!document.getElementById('lms-complete-btn')) {
+            // Find the best place to add button (end of content or existing button container)
+            const contentEnd = document.querySelector('.lesson-content, .content, main, body');
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                z-index: 9999;
+            `;
+
+            buttonContainer.innerHTML = `
+                <button id="lms-complete-btn" onclick="completeLesson()" style="
+                    background: linear-gradient(45deg, #00ff41, #00cc33);
+                    color: #000;
+                    border: none;
+                    padding: 1rem 2rem;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.4);
+                    transition: all 0.3s ease;
+                ">
+                    Complete Lesson ✓
+                </button>
+                <a href="/caet-dashboard" style="
+                    display: block;
+                    margin-top: 10px;
+                    text-align: center;
+                    color: #ffcc00;
+                    text-decoration: none;
+                    font-family: monospace;
+                ">
+                    ← Back to Dashboard
+                </a>
+            `;
+
+            document.body.appendChild(buttonContainer);
+
+            // Add hover effect
+            const btn = document.getElementById('lms-complete-btn');
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'scale(1.05)';
+                btn.style.boxShadow = '0 6px 25px rgba(0, 255, 65, 0.6)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+                btn.style.boxShadow = '0 4px 15px rgba(0, 255, 65, 0.4)';
+            });
+        }
+    });
+
+    // Save progress on page unload
+    window.addEventListener('beforeunload', saveProgress);
+})();
+</script>
+</body>
+</html>
